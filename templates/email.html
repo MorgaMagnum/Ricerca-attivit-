@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Email · {{ name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+:root {
+  --dark:  #1a1f2e;
+  --teal:  #1abc9c;
+  --teal2: #0d9488;
+  --teal3: #09655a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #dce1f6;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── PBAR ── */
+#pbar {
+  position: sticky; top: 0; z-index: 9999;
+  background: #111; color: #fff;
+  display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+  padding: .55rem 1.5rem; font-size: .78rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,.5);
+}
+#pbar .badge { background: var(--teal); color: #000; font-weight: 800; padding: .2em .65em; border-radius: 999px; font-size: .68rem; letter-spacing: .06em; }
+#pbar .acts { margin-left: auto; display: flex; gap: .5rem; align-items: center; }
+.pb { border: 1px solid rgba(255,255,255,.2); background: transparent; color: #fff; border-radius: 6px; padding: .28rem .7rem; font-size: .72rem; cursor: pointer; transition: background .15s; white-space: nowrap; }
+.pb:hover { background: rgba(255,255,255,.1); }
+.pb.prim { background: var(--teal); color: #000; border-color: var(--teal); font-weight: 700; }
+.pb.dl { background: #1d4ed8; border-color: #1d4ed8; }
+.pb.dl:hover { background: #1e40af; }
+
+.tpl-nav  { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+.tpl-btn  { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: rgba(255,255,255,.65); border-radius: 5px; padding: .2rem .6rem; font-size: .69rem; cursor: pointer; transition: all .14s; white-space: nowrap; }
+.tpl-btn:hover  { background: rgba(255,255,255,.16); color: #fff; }
+.tpl-btn.active { background: var(--teal); color: #000; border-color: var(--teal); font-weight: 700; }
+
+.lang-btn  { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: rgba(255,255,255,.65); border-radius: 5px; padding: .2rem .5rem; font-size: .68rem; font-weight: 700; letter-spacing: .03em; cursor: pointer; transition: all .14s; white-space: nowrap; }
+.lang-btn:hover  { background: rgba(255,255,255,.16); color: #fff; }
+.lang-btn.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+
+/* ── OUTER CARD ── */
+#email-card {
+  max-width: 760px; margin: 2rem auto 5rem;
+  box-shadow: 0 32px 100px rgba(0,0,0,.6), 0 0 0 1px rgba(26,188,156,.12);
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* ════════════════════════════════════════
+   HEADER
+   ════════════════════════════════════════ */
+.em-header {
+  background: var(--dark);
+  display: grid; grid-template-columns: 190px 1fr auto; align-items: center;
+  position: relative; overflow: hidden;
+  min-height: 140px; padding: 1.5rem 2.25rem 1.5rem 2rem;
+}
+
+.geo-left {
+  position: absolute; left: 0; top: 0; height: 100%; width: 200px; pointer-events: none;
+}
+.geo-right {
+  position: absolute; right: 0; top: 0; height: 100%; width: 200px; pointer-events: none;
+  transform: scaleX(-1);
+}
+
+.em-logo-wrap {
+  display: flex; justify-content: center; align-items: center;
+  z-index: 2; padding: 0 1rem;
+}
+.em-logo-wrap img { max-width: 240px; max-height: 110px; object-fit: contain; }
+
+.em-contacts { z-index: 2; display: flex; flex-direction: column; gap: .45rem; min-width: 190px; }
+.em-contact-row { display: flex; align-items: center; gap: .55rem; color: rgba(255,255,255,.88); font-size: .8rem; white-space: nowrap; }
+.em-contact-row i { color: var(--teal); font-size: .95rem; width: 16px; text-align: center; }
+
+.em-left-pad { min-width: 190px; z-index: 2; }
+
+/* ════════════════════════════════════════
+   BODY
+   ════════════════════════════════════════ */
+.em-body { padding: 3rem 3.5rem 2.5rem; background: #fff; }
+
+.em-subject-line {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.25rem; font-weight: 800;
+  color: #111; line-height: 1.35;
+  margin-bottom: 1.75rem;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 1rem;
+}
+
+.em-salute { font-size: .95rem; color: #2d2d2d; margin-bottom: 1.5rem; font-weight: 500; }
+
+.em-p  { font-size: .93rem; color: #2d2d2d; line-height: 1.9; margin-bottom: 1.15rem; text-align: justify; }
+.em-ul { font-size: .93rem; color: #2d2d2d; line-height: 1.9; margin-bottom: 1.15rem; padding-left: 1.6rem; }
+.em-ul li { margin-bottom: .35rem; }
+
+.em-highlight {
+  border-left: 3px solid var(--teal);
+  background: #f0fdf9; padding: .9rem 1.25rem;
+  border-radius: 0 6px 6px 0; margin: 1.5rem 0;
+  font-size: .91rem; color: #1a5c52; line-height: 1.75;
+}
+
+.em-cta-wrap { margin: 2rem 0 .5rem; }
+.em-btn {
+  display: inline-block;
+  background: var(--teal); color: #fff;
+  border: none; border-radius: 6px;
+  padding: .85rem 2.4rem; font-weight: 700; font-size: .9rem;
+  font-family: 'Inter', sans-serif; cursor: pointer;
+  text-decoration: none; letter-spacing: .01em;
+}
+
+.em-closing { margin-top: 2.5rem; font-size: .93rem; color: #2d2d2d; line-height: 1.85; }
+.em-sign     { margin-top: 2.25rem; display: flex; justify-content: space-between; align-items: flex-end; }
+.em-sign-left { font-size: .93rem; color: #555; }
+.em-sign-right { text-align: right; }
+.em-sign-name  { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1.05rem; color: #111; }
+.em-sign-role  { font-size: .78rem; color: var(--teal); font-weight: 600; margin-top: .15rem; letter-spacing: .02em; }
+
+/* ════════════════════════════════════════
+   FOOTER
+   ════════════════════════════════════════ */
+.em-footer {
+  background: var(--dark);
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; overflow: hidden;
+  min-height: 72px; padding: 1.25rem 2.25rem;
+}
+.em-footer-left  { color: rgba(255,255,255,.7); font-weight: 600; font-size: .9rem; z-index: 2; }
+.em-footer-right { color: #fff; font-weight: 700; font-size: .95rem; z-index: 2; font-family: 'Montserrat', sans-serif; }
+
+/* ── WATERMARK ── */
+.wm { position: fixed; bottom: .75rem; right: .75rem; z-index: 8888; background: rgba(255,255,255,.06); color: rgba(255,255,255,.35); font-size: .63rem; padding: .3rem .65rem; border-radius: 8px; font-weight: 600; opacity: 1; pointer-events: none; border: 1px solid rgba(255,255,255,.08); }
+.wm em { color: var(--teal); font-style: normal; }
+
+@media (max-width: 600px) {
+  #email-card { margin: .5rem .5rem 3rem; }
+
+  .em-header {
+    flex-direction: column; align-items: center;
+    padding: 1.1rem 1rem; min-height: auto; gap: .7rem;
+  }
+  .em-left-pad { display: none; }
+  .geo-left, .geo-right { width: 70px; }
+  .em-logo-wrap { padding: 0; }
+  .em-logo-wrap img { max-width: 72px; max-height: 72px; }
+  .em-contacts { align-items: center; min-width: unset; }
+  .em-contact-row { font-size: .72rem; }
+
+  .em-body { padding: 1.6rem 1.1rem 1.25rem; }
+  .em-subject-line { font-size: 1rem; }
+  .em-p { text-align: left; }
+  .em-btn { display: block; text-align: center; }
+
+  .em-sign { flex-direction: column; align-items: flex-start; gap: .6rem; }
+  .em-sign-right { text-align: left; }
+
+  .em-footer {
+    flex-direction: column; align-items: center;
+    gap: .4rem; padding: .9rem 1rem; min-height: auto; text-align: center;
+  }
+}
+
+@media print {
+  #pbar { display: none !important; }
+  .wm   { display: none; }
+  body  { background: #fff; }
+  #email-card { box-shadow: none; margin: 0; max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── PBAR ── -->
+<div id="pbar">
+  <span class="badge">EMAIL</span>
+  <span style="opacity:.25">|</span>
+  <strong>{{ name }}</strong>
+  {% if address %}<span style="opacity:.25">·</span>
+  <span style="opacity:.65;font-size:.75rem"><i class="bi bi-geo-alt-fill" style="color:#ea4335"></i> {{ address }}</span>{% endif %}
+  {% if website %}<span style="opacity:.25">·</span>
+  <a href="{{ website if website.startswith('http') else 'https://' + website }}" target="_blank" style="color:var(--teal);font-size:.75rem;text-decoration:none" title="Visita il sito del cliente"><i class="bi bi-globe2 me-1"></i>{{ website }}</a>{% endif %}
+  <span style="opacity:.25">|</span>
+  <div class="tpl-nav" id="langNav"></div>
+  <span style="opacity:.25">|</span>
+  <div class="tpl-nav" id="tplNav"></div>
+  <span style="opacity:.25">|</span>
+  {% if email %}
+  <div style="display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:.22rem .55rem;font-size:.72rem;max-width:260px">
+    <i class="bi bi-at" style="color:var(--teal);flex-shrink:0;font-size:.8rem"></i>
+    <span id="targetEmail" style="opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">{{ email }}</span>
+    <button class="pb" id="btnCopyEmail" onclick="copyTargetEmail()" style="padding:.15rem .5rem;font-size:.67rem;white-space:nowrap;flex-shrink:0">Copia email</button>
+  </div>
+  <span style="opacity:.25">|</span>
+  {% endif %}
+  <div style="display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:.22rem .55rem;font-size:.72rem;max-width:360px">
+    <i class="bi bi-envelope-open" style="color:var(--teal);flex-shrink:0;font-size:.8rem"></i>
+    <span id="suggestedSubject" style="opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-style:italic"></span>
+    <button class="pb" id="btnCopySubj" onclick="copySuggestedSubject()" style="padding:.15rem .5rem;font-size:.67rem;white-space:nowrap;flex-shrink:0">Copia oggetto</button>
+  </div>
+  <div class="acts">
+    <button class="pb" onclick="copyPlainText()"><i class="bi bi-clipboard me-1"></i>Copia Testo</button>
+    <button class="pb prim" onclick="copyAsRichEmail()" id="btnRich"><i class="bi bi-envelope-check me-1"></i>Copia per Gmail</button>
+    <button class="pb dl" onclick="downloadEmailHTML()"><i class="bi bi-download me-1"></i>Scarica HTML</button>
+    <button class="pb" onclick="window.print()"><i class="bi bi-printer me-1"></i>PDF</button>
+    <button class="pb" onclick="window.close()"><i class="bi bi-x-lg"></i></button>
+  </div>
+</div>
+
+<!-- ── EMAIL CARD ── -->
+<div id="email-card">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="em-header">
+    <svg class="geo-left" viewBox="0 0 200 140" preserveAspectRatio="none">
+      <polygon points="-15,0  55,0  40,140 -15,140" fill="#09655a" opacity=".9"/>
+      <polygon points="15,0   85,0  70,140  15,140" fill="#0d9488" opacity=".85"/>
+      <polygon points="50,0  120,0 105,140  50,140" fill="#1abc9c" opacity=".75"/>
+    </svg>
+
+    <div class="em-left-pad"></div>
+
+    <div class="em-logo-wrap">
+      <img id="logoImg" src="https://res.cloudinary.com/jvrsszrd/image/upload/f_auto,q_auto/android-chrome-192x192-1_epojdt" alt="Andrea Morganti Web Designer">
+    </div>
+
+    <div class="em-contacts">
+      <div class="em-contact-row"><i class="bi bi-telephone-fill"></i> <a href="tel:+393406228311" style="color:rgba(255,255,255,.88);text-decoration:none">+39 340 6228311</a></div>
+      <div class="em-contact-row"><i class="bi bi-envelope-fill"></i> <a href="mailto:info@morgantidesign.it" style="color:rgba(255,255,255,.88);text-decoration:none">info@morgantidesign.it</a></div>
+      <div class="em-contact-row"><i class="bi bi-globe2"></i> <a href="https://www.morgantidesign.it" target="_blank" style="color:rgba(255,255,255,.88);text-decoration:none">www.morgantidesign.it</a></div>
+    </div>
+  </div>
+
+  <!-- ═══ BODY ═══ -->
+  <div class="em-body" id="em-body"></div>
+
+  <!-- ═══ FOOTER ═══ -->
+  <div class="em-footer">
+    <div class="em-footer-left" id="em-footer-left">
+      <a href="tel:+393406228311" style="color:rgba(255,255,255,.7);text-decoration:none">+39 340 6228311</a>
+      &nbsp;·&nbsp;
+      <a href="mailto:info@morgantidesign.it" style="color:rgba(255,255,255,.7);text-decoration:none">info@morgantidesign.it</a>
+    </div>
+    <div class="em-footer-right">
+      <a href="https://www.morgantidesign.it" target="_blank" style="color:#fff;text-decoration:none">www.morgantidesign.it</a>
+    </div>
+    <svg class="geo-right" viewBox="0 0 200 140" preserveAspectRatio="none">
+      <polygon points="-15,0  55,0  40,140 -15,140" fill="#09655a" opacity=".9"/>
+      <polygon points="15,0   85,0  70,140  15,140" fill="#0d9488" opacity=".85"/>
+      <polygon points="50,0  120,0 105,140  50,140" fill="#1abc9c" opacity=".75"/>
+    </svg>
+  </div>
+
+</div>
+
+<div class="wm">by <em>Morganti</em></div>
+
+<script>
+const NAME          = {{ name|tojson }};
+const BTYPE         = {{ btype|tojson }};
+const ADDRESS       = {{ address|tojson }};
+const CITY_PARAM    = {{ city|tojson }};
+const RATING        = {{ rating|tojson }};
+const REVIEW_COUNT  = {{ review_count|tojson }};
+const TA_RATING     = {{ ta_rating|tojson }};
+const TA_REVIEW_COUNT = {{ ta_review_count|tojson }};
+const SITE_PLATFORM = {{ site_platform|tojson }};
+const WEBSITE       = {{ website|tojson }};
+const WEBSITE_STATUS = {{ website_status|tojson }};
+const LOGO_B64      = {{ logo_b64|tojson }};
+
+const city = (ADDRESS ? ADDRESS.split(',').pop().trim() : '') || CITY_PARAM;
+
+const JS_TYPE_THEME = {
+  restaurant:'food', fast_food:'food', ice_cream:'food', pizza:'food', bakery:'food', pastry:'food',
+  bar:'cafe', cafe:'cafe', pub:'cafe', coffee:'cafe', biergarten:'cafe',
+  hairdresser:'wellness', beauty:'wellness', spa:'wellness', nail_salon:'wellness',
+  fitness_centre:'sport', gym:'sport', sports_centre:'sport', yoga:'sport',
+  hotel:'hotel', guest_house:'hotel', hostel:'hotel', bed_and_breakfast:'hotel', motel:'hotel',
+  pharmacy:'health', doctors:'health', dentist:'health', physiotherapist:'health', clinic:'health',
+  lawyer:'professional', notary:'professional', accountant:'professional', tax_advisor:'professional',
+  estate_agent:'realestate', car_repair:'automotive', car_wash:'automotive',
+  clothes:'retail', shoes:'retail', jewellery:'retail',
+  electronics:'tech', mobile_phone:'tech', computer:'tech',
+  carpenter:'craft', electrician:'craft', plumber:'craft', painter:'craft',
+};
+const THEME_LABEL = {
+  food:'ristorante', cafe:'bar / caffe', wellness:'salone di bellezza',
+  sport:'palestra', hotel:'struttura', health:'studio medico',
+  professional:'studio professionale', realestate:'agenzia immobiliare',
+  automotive:'officina', retail:'negozio', tech:'negozio di elettronica',
+  craft:'artigiano', default:'attivita',
+};
+const themeKey = JS_TYPE_THEME[(BTYPE||'').toLowerCase()] || 'default';
+const label    = THEME_LABEL[themeKey] || 'attivita';
+const cityLine = city ? ` a ${city}` : '';
+
+// Articolo (determinativo/indeterminativo) corretto per genere del nome categoria in ${label}
+const LABEL_ART = {
+  food:{def:'il',indef:'un'}, cafe:{def:'il',indef:'un'}, wellness:{def:'il',indef:'un'},
+  sport:{def:'la',indef:'una'}, hotel:{def:'la',indef:'una'}, health:{def:'lo',indef:'uno'},
+  professional:{def:'lo',indef:'uno'}, realestate:{def:"l'",indef:"un'"}, automotive:{def:"l'",indef:"un'"},
+  retail:{def:'il',indef:'un'}, tech:{def:'il',indef:'un'}, craft:{def:"l'",indef:'un'},
+  default:{def:"l'",indef:"un'"},
+};
+const labelArt = LABEL_ART[themeKey] || LABEL_ART.default;
+
+// ── Articolo italiano per "Una piccola idea per..." ──────────────────
+function getItalianArticle(name, type) {
+  // Se il nome inizia già con un articolo, non aggiungiamo nulla
+  if (/^(il|la|lo|l'|l\u2019|i|gli|le|un|una|uno)\s/i.test(name.trim())) return '';
+  const TYPE_ART = {
+    restaurant:'il', fast_food:'il', pizza:'la', ice_cream:'la',
+    bakery:'la', pastry:'la', bar:'il', cafe:'il', pub:'il', coffee:'il',
+    biergarten:'il', hotel:"l'", guest_house:'il', hostel:"l'", bed_and_breakfast:'il',
+    motel:'il', chalet:'lo', hairdresser:'il', beauty:'il', pharmacy:'la',
+    doctors:'lo', dentist:'il', fitness_centre:'la', estate_agent:"l'",
+    lawyer:'lo', notary:'il', accountant:'il', tax_advisor:'il', car_repair:"l'",
+    clothes:'il', shoes:'il', electronics:'il', mobile_phone:'il',
+    furniture:'il', interior_decoration:"l'", supermarket:'il', convenience:"l'",
+    carpenter:'il', electrician:"l'", plumber:'il', painter:'il',
+  };
+  let art = TYPE_ART[(type||'').toLowerCase()] || 'il';
+  // Elisione davanti a vocale o h
+  const first = (name.trim()[0] || '').toLowerCase();
+  const isVowel = 'aeiouàèéìíîòóùú'.includes(first);
+  if ((art === 'il' || art === 'lo' || art === 'la') && (isVowel || first === 'h')) art = "l'";
+  return art;
+}
+function copySuggestedSubject() {
+  const text = document.getElementById('suggestedSubject').dataset.value || document.getElementById('suggestedSubject').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btnCopySubj');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiato!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  });
+}
+function copyTargetEmail() {
+  const el = document.getElementById('targetEmail');
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent.trim()).then(() => {
+    const btn = document.getElementById('btnCopyEmail');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiato!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  });
+}
+
+const reviewNote   = '';
+const platformNote = SITE_PLATFORM ? SITE_PLATFORM : '';
+
+// Website link for templates (clickable)
+const websiteLink = WEBSITE
+  ? `<a href="${WEBSITE.startsWith('http') ? WEBSITE : 'https://'+WEBSITE}" target="_blank" style="color:#0d9488">${WEBSITE}</a>`
+  : '';
+
+const SALUTE_PREFIX = {
+  food:         'Gentili proprietari del ristorante',
+  cafe:         'Gentili proprietari del bar',
+  wellness:     'Gentili proprietari del salone',
+  sport:        'Gentili titolari della palestra',
+  hotel:        'Gentili titolari della struttura',
+  health:       'Gentili titolari dello studio medico',
+  professional: 'Gentili titolari dello studio professionale',
+  realestate:   "Gentili titolari dell\u2019agenzia immobiliare",
+  automotive:   "Gentili titolari dell\u2019officina",
+  retail:       'Gentili proprietari del negozio',
+  tech:         'Gentili titolari del negozio',
+  craft:        "Gentili titolari dell\u2019attivit\u00e0",
+  default:      "Gentili proprietari",
+};
+const salutePrefix = SALUTE_PREFIX[themeKey] || "Gentili proprietari";
+const SALUTE = `<p class="em-salute">${salutePrefix} <strong>${NAME}</strong>,</p>`;
+
+const CTA = `<div class="em-cta-wrap"><a href="https://www.morgantidesign.it" target="_blank" class="em-btn">Richiedete un preventivo gratuito &rarr;</a></div>`;
+
+const CLOSING = (extra = '') => `
+  <div class="em-closing">${extra ? `<p>${extra}</p>` : ''}
+    <p>Resto a completa disposizione per qualsiasi domanda e vi ringrazio per il tempo dedicato alla lettura di questa email.</p>
+  </div>
+  <div class="em-sign">
+    <div class="em-sign-left">Cordiali Saluti</div>
+    <div class="em-sign-right">
+      <div class="em-sign-name">Andrea Morganti</div>
+      <div class="em-sign-role">Web Designer &amp; Software Developer</div>
+    </div>
+  </div>`;
+
+// ══════════════════════════════════════════════════════════
+// PORTFOLIO
+// ══════════════════════════════════════════════════════════
+const PORTFOLIO_ITEMS = [
+  {
+    img:      'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/net7-mockup-1-scaled_k15dwe.jpg',
+    title:    'Net7 — Soluzioni digitali',
+    desc:     'Societ&agrave; digitale con sede a Pisa che collabora con aziende, PA, universit&agrave; e istituzioni culturali, trasformando obiettivi complessi in esperienze digitali misurabili.',
+    url:      'https://morgantidesign.it/portfolio/net-7-sito-web/',
+    imgRight: false,
+  },
+  {
+    img:      'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910118/premiocambiamenti-2025-scaled_rel240.jpg',
+    title:    'Premio Cambiamenti 2026',
+    desc:     'Il concorso nazionale CNA dedicato alle imprese italiane che innovano prodotti, processi e territori. La nona edizione ha visto la partecipazione di startup e PMI da tutta Italia.',
+    url:      'https://morgantidesign.it/portfolio/premio-cambiamenti-2026/',
+    imgRight: true,
+  },
+  {
+    img:      'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/confindustria-modello_phxstr.jpg',
+    title:    'Confindustria Nautica',
+    desc:     'Fondata nel 1967, Confindustria Nautica rappresenta l\'eccellenza italiana nel settore marittimo, promuovendo la nautica da diporto in Italia e nel mondo attraverso una rete di imprenditori capaci di innovare.',
+    url:      'https://morgantidesign.it/portfolio/confindustria-nautica-italiana/',
+    imgRight: false,
+  },
+];
+
+function buildPortfolioTable() {
+  const rows = PORTFOLIO_ITEMS.map(p => {
+    const imgCell = `
+      <td class="em-port-row" width="240" style="vertical-align:middle;width:240px;padding:0;line-height:0">
+        <a href="${p.url}" target="_blank" style="display:block;text-decoration:none;border:0;line-height:0">
+          <img class="em-port-img" src="${p.img}" alt="${p.title}" width="240"
+               style="display:block;width:240px;max-width:240px;height:auto;border-radius:8px;border:0;box-shadow:0 6px 20px rgba(0,0,0,.15)">
+        </a>
+      </td>`;
+    const gutter = `<td class="em-port-gutter" width="32" style="width:32px;font-size:0">&nbsp;</td>`;
+    const textCell = `
+      <td class="em-port-row" style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;padding:0">
+        <div style="font-size:15px;font-weight:700;color:#111111;margin-bottom:8px;line-height:1.3;font-family:Arial,Helvetica,sans-serif">${p.title}</div>
+        <div style="font-size:13px;color:#555555;line-height:1.85;margin-bottom:16px;font-family:Arial,Helvetica,sans-serif">${p.desc}</div>
+        <a href="${p.url}" target="_blank"
+           style="display:inline-block;background:#1abc9c;color:#ffffff !important;border-radius:5px;padding:9px 22px;font-size:12px;font-weight:700;text-decoration:none;font-family:Arial,Helvetica,sans-serif;letter-spacing:.03em">Vedi progetto &rarr;</a>
+      </td>`;
+    const cols = p.imgRight
+      ? `${textCell}${gutter}${imgCell}`
+      : `${imgCell}${gutter}${textCell}`;
+    return `<tr>${cols}</tr>`;
+  }).join(`
+    <tr><td colspan="3" height="22" style="font-size:0">&nbsp;</td></tr>
+    <tr><td colspan="3" height="1" bgcolor="#e8e8e8" style="background:#e8e8e8;font-size:0;line-height:0">&nbsp;</td></tr>
+    <tr><td colspan="3" height="22" style="font-size:0">&nbsp;</td></tr>
+  `);
+  return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:28px 0 20px">${rows}</table>`;
+}
+
+function buildPortfolioHTML() {
+  return `
+    <div class="em-subject-line">Alcuni dei progetti che ho realizzato</div>
+    ${SALUTE}
+    <p class="em-p">
+      Tenevo a mostrarle concretamente il mio lavoro prima ancora di parlare di costi.
+      Ecco tre progetti recenti, ognuno costruito su misura per il cliente.
+    </p>
+    ${buildPortfolioTable()}
+    <p class="em-p">
+      Ogni progetto nasce da un processo di ascolto e progettazione dedicato.
+      Per la vostra attivita farei lo stesso, partendo dalle vostre esigenze specifiche.
+    </p>
+    <div class="em-highlight">
+      Portfolio completo su <a href="https://www.morgantidesign.it" target="_blank" style="color:#0d9488;font-weight:600">morgantidesign.it</a>: preventivo gratuito e senza impegno.
+    </div>
+    ${CTA}
+    ${CLOSING()}
+  `;
+}
+
+// ══════════════════════════════════════════════════════════
+// 12 TEMPLATE
+// ══════════════════════════════════════════════════════════
+const TEMPLATES = [
+
+  // ─── 1. LA RICERCA ───────────────────────────────────────
+  {
+    label: '1 · La Ricerca',
+    body: `
+      <div class="em-subject-line">Ho trovato ${NAME}</div>
+      ${SALUTE}
+      <p class="em-p">
+        Mi sono imbattuto in <strong>${NAME}</strong>${reviewNote}.
+        Ho notato che, nonostante l'ottima reputazione online, non avete ancora un sito web dedicato.
+      </p>
+      <p class="em-p">
+        Mi chiamo Andrea Morganti e sono un web designer freelance con base a Pisa. Da anni realizzo siti web professionali per aziende e realtà del territorio, progettati per essere veloci, ottimizzati per Google e perfetti da consultare anche da smartphone.
+      </p>
+      <div class="em-highlight">
+        ${themeKey === 'food'
+          ? 'Un sito dedicato vi permetterebbe di valorizzare il ' + label + ', mostrare il menu, raccontare la vostra storia e farvi contattare più facilmente da nuovi clienti: un punto di riferimento vostro, non solo affidato a portali e social.'
+          : 'Un sito dedicato vi permetterebbe di valorizzare la vostra attività, raccontare la vostra storia e farvi contattare più facilmente da nuovi clienti: un punto di riferimento vostro, non solo affidato a portali e social.'
+        }
+      </div>
+      <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Negli ultimi anni ho avuto il piacere di collaborare con realtà come:</p>
+      ${buildPortfolioTable()}
+      <p class="em-p">
+        Ogni progetto è costruito su misura, senza template. Per la vostra attività farei lo stesso.
+      </p>
+      <p class="em-p">
+        Se l'idea può interessarvi, sarei felice di prepararvi gratuitamente una prima proposta, senza alcun impegno.
+      </p>
+      <div class="em-cta-wrap"><a href="https://www.morgantidesign.it" target="_blank" class="em-btn">Parliamone senza impegno &rarr;</a></div>
+      ${CLOSING()}
+    `,
+  },
+
+  // ─── 2. RESTYLE ──────────────────────────────────────────
+  {
+    label: '2 · Restyle',
+    body: `
+      <div class="em-subject-line">Una proposta di restyling per ${NAME}</div>
+      ${SALUTE}
+      <p class="em-p">
+        Mi sono imbattuto in <strong>${NAME}</strong>${reviewNote}.
+        Ho visitato anche il vostro sito web e credo che, con un restyling mirato, potrebbe valorizzare ancora meglio
+        la vostra immagine e offrire un'esperienza più moderna ai vostri clienti.
+      </p>
+      <p class="em-p">
+        Mi chiamo Andrea Morganti e sono un web designer freelance con base a Pisa. Da anni realizzo siti web professionali
+        per aziende e attività locali, progettati per essere veloci, ottimizzati per Google e perfetti da consultare anche da smartphone.
+      </p>
+      <p class="em-p">
+        Un sito web è spesso il primo contatto tra un potenziale cliente e un'attività.
+        Un design aggiornato, una navigazione più intuitiva e una presentazione più curata
+        trasmettono più qualità, rendono più facile essere contattati
+        e valorizzano meglio ciò che rende unica la vostra attività.
+      </p>
+      <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Negli ultimi anni ho avuto il piacere di collaborare con realtà come:</p>
+      ${buildPortfolioTable()}
+      <p class="em-p">
+        Ogni progetto è costruito su misura, senza template. Nel vostro caso partirei dall'identità già esistente,
+        rinnovandola con una grafica più moderna, migliori prestazioni e una struttura pensata per valorizzare al meglio la vostra attività.
+      </p>
+      <p class="em-p">
+        Se l'idea può interessarvi, sarei felice di prepararvi gratuitamente una proposta indicativa di restyling, senza alcun impegno.
+      </p>
+      <div class="em-cta-wrap"><a href="https://www.morgantidesign.it" target="_blank" class="em-btn">Parliamone senza impegno &rarr;</a></div>
+      ${CLOSING()}
+    `,
+  },
+
+  // ─── 3. IL SITO FERMO ────────────────────────────────────
+  {
+    label: '3 · Il Sito Fermo',
+    body: `
+      <div class="em-subject-line">${WEBSITE_STATUS === 'error' ? 'Il sito di ' + NAME + ' restituisce un errore' : 'Non riesco ad aprire il sito di ' + NAME}</div>
+      ${SALUTE}
+      <p class="em-p">
+        Sono arrivato al sito di <strong>${NAME}</strong>${reviewNote}${websiteLink ? ' (' + websiteLink + ')' : ''},
+        ma ${WEBSITE_STATUS === 'error' ? 'ho ricevuto un errore aprendolo' : 'la pagina non si carica, come se il dominio non fosse piu attivo'}.
+      </p>
+      <p class="em-p">
+        Chiunque vi cerchi online in questo momento trova lo stesso problema, e probabilmente passa al risultato successivo.
+        Con la reputazione che avete, e un peccato perdere contatti per un problema tecnico risolvibile.
+      </p>
+      <p class="em-p">
+        Mi chiamo Andrea Morganti, web designer freelance a Pisa. Posso ricostruire il sito da zero,
+        su un'infrastruttura affidabile, veloce e semplice da mantenere nel tempo.
+      </p>
+      <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Alcuni progetti realizzati di recente:</p>
+      ${buildPortfolioTable()}
+      <p class="em-p">
+        Posso darvi un'occhiata gratuita e dirvi cosa non va, senza impegno.
+      </p>
+      ${CTA}
+      ${CLOSING()}
+    `,
+  },
+
+  // ─── 4. LA PRIMA IMPRESSIONE ─────────────────────────────
+  {
+    label: '4 · La Prima Impressione',
+    body: `
+      <div class="em-subject-line">La prima impressione si fa online, e ${NAME} merita di farla bene</div>
+      ${SALUTE}
+      <p class="em-p">
+        Oggi, prima di entrare in un locale o chiamare uno studio, quasi tutti cercano su Google.
+        Quello che trovano (o non trovano) determina se vi contattano o vanno altrove.
+      </p>
+      <p class="em-p">
+        Ho trovato <strong>${NAME}</strong>${reviewNote} e ho pensato che un'attivita con questa reputazione
+        meriti una presenza online all'altezza.
+      </p>
+      <p class="em-p">
+        Mi chiamo Andrea Morganti, web designer freelance con base a Pisa.
+        Creo siti che raccontano l'identita di un'attivita, attraggono nuovi clienti
+        e funzionano su qualsiasi dispositivo. Non template prefabbricati: ogni sito e costruito da zero.
+      </p>
+      <div class="em-highlight">
+        Preventivo gratuito e senza impegno. Posso mostrarvi esempi concreti prima ancora di iniziare a parlare di numeri.
+      </div>
+      <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Qualche esempio di lavori recenti:</p>
+      ${buildPortfolioTable()}
+      ${CTA}
+      ${CLOSING()}
+    `,
+  },
+
+  // ─── 5. IL BREVE ─────────────────────────────────────────
+  {
+    label: '5 · Il Breve',
+    body: `
+      <div class="em-subject-line">Una cosa sola</div>
+      ${SALUTE}
+      <p class="em-p">
+        Mi chiamo Andrea Morganti, web designer freelance a Pisa.
+      </p>
+      <p class="em-p">
+        Ho trovato <strong>${NAME}</strong>${reviewNote}.
+        Nessun sito web. Ho pensato che potesse valere la pena scrivervi.
+      </p>
+      <p class="em-p">
+        Realizzo siti professionali per attivita come la vostra: veloci, visibili su Google,
+        ottimizzati per smartphone. Preventivo gratuito, consegna in 2–3 settimane.
+      </p>
+      ${buildPortfolioTable()}
+      <p class="em-p">Se vi interessa saperne di piu, sono qui.</p>
+      ${CTA}
+      ${CLOSING()}
+    `,
+  },
+
+  // ─── 6. IL TERRITORIO ────────────────────────────────────
+  {
+    label: '6 · Il Territorio',
+    body: `
+      <div class="em-subject-line">Conosco bene il territorio, e so cosa cercano i vostri clienti online</div>
+      ${SALUTE}
+      <p class="em-p">
+        Mi chiamo Andrea Morganti, web designer freelance con base a Pisa.
+        Lavoro con attivita locali da anni e conosco bene le dinamiche del territorio:
+        cosa cercano le persone online, come si comportano prima di scegliere un ${label},
+        e cosa fa la differenza tra essere trovati o ignorati.
+      </p>
+      <p class="em-p">
+        Ho trovato <strong>${NAME}</strong>${reviewNote}: un'attivita che funziona,
+        ma che online non esiste ancora. E ogni giorno che passa senza un sito e un'occasione persa.
+      </p>
+      <ul class="em-ul">
+        <li>Sito web professionale, costruito su misura per voi</li>
+        <li>Ottimizzato per apparire nelle ricerche locali di Google</li>
+        <li>Perfetto su smartphone, dove avvengono la maggior parte delle ricerche</li>
+        <li>Consegna in 2–3 settimane, prezzi accessibili per le piccole attivita</li>
+      </ul>
+      <p class="em-p">
+        Ecco qualche progetto realizzato per attivita simili alla vostra,
+        cosi potete farvi un'idea concreta prima ancora di decidere.
+      </p>
+      ${buildPortfolioTable()}
+      ${CTA}
+      ${CLOSING()}
+    `,
+  },
+
+  // ─── 7. I DATI ───────────────────────────────────────────
+  {
+    label: '7 · I Dati',
+    body: `
+      <div class="em-subject-line">Tre numeri che riguardano ${NAME}</div>
+      ${SALUTE}
+      <p class="em-p">
+        Ho trovato <strong>${NAME}</strong>${reviewNote}.
+        Nessun sito web. Ho pensato valesse la pena condividere qualche dato.
+      </p>
+      <ul class="em-ul">
+        <li>Il <strong>76%</strong> delle persone cerca un'attivita locale online prima di visitarla</li>
+        <li>Il <strong>57%</strong> non consiglierebbe un'attivita con un sito mobile scadente, o senza sito</li>
+        <li>Le attivita con sito professionale ricevono in media <strong>3 volte piu contatti</strong> rispetto a quelle senza</li>
+      </ul>
+      <p class="em-p">
+        Mi chiamo Andrea Morganti, web designer freelance a Pisa.
+        Realizzo siti web su misura per attivita locali: veloci, visibili su Google e ottimizzati
+        per chi naviga da smartphone. Preventivo gratuito, senza impegno.
+      </p>
+      <div class="em-highlight">
+        Un sito non e un costo: e un venditore silenzioso che lavora per voi 24 ore su 24, 7 giorni su 7.
+      </div>
+      <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Alcuni progetti realizzati di recente:</p>
+      ${buildPortfolioTable()}
+      ${CTA}
+      ${CLOSING()}
+    `,
+  },
+
+  // ─── 8. LA VETRINA ───────────────────────────────────────
+  {
+    label: '8 · La Vetrina',
+    body: `
+      <div class="em-subject-line">La vostra vetrina piu importante non e in strada, e online</div>
+      ${SALUTE}
+      <p class="em-p">
+        Immaginate di avere una vetrina curata, luminosa, sempre aperta: visibile a chiunque
+        stia cercando un ${label}${cityLine}, anche alle due di notte. Questo e quello che fa un sito web ben fatto.
+      </p>
+      <p class="em-p">
+        Ho trovato <strong>${NAME}</strong>${reviewNote} e ho notato l'assenza di un sito web.
+        Con una reputazione del genere, siete gia a meta strada: manca solo la presenza online
+        che trasforma chi vi cerca in un cliente reale.
+      </p>
+      <p class="em-p">
+        Mi chiamo Andrea Morganti, web designer freelance a Pisa.
+        Non realizzo template uguali per tutti: ogni sito che costruisco racconta
+        l'identita specifica dell'attivita, con cura per i dettagli e attenzione all'esperienza utente.
+      </p>
+      <p class="em-p">
+        Ecco qualche esempio del mio lavoro.
+      </p>
+      ${buildPortfolioTable()}
+      ${CTA}
+      ${CLOSING()}
+    `,
+  },
+
+  // ─── 9. IL TECNICO (platform-aware, con link sito) ───────
+  {
+    label: '9 · Il Tecnico',
+    body: `
+      <div class="em-subject-line">${platformNote ? 'Il vostro sito su ' + platformNote + ' puo fare molto di piu' : 'Ho analizzato la vostra presenza online'}</div>
+      ${SALUTE}
+      <p class="em-p">
+        Ho trovato <strong>${NAME}</strong>${reviewNote} e ho dato un'occhiata alla vostra presenza digitale${websiteLink ? ' (' + websiteLink + ')' : ''}.
+        ${platformNote
+          ? `Il sito e realizzato su <strong>${platformNote}</strong>, una piattaforma che spesso limita le performance, il posizionamento su Google e la flessibilita di design.`
+          : `La vostra presenza online ha margini di miglioramento concreti, sia in termini di visibilita su Google che di esperienza utente.`
+        }
+      </p>
+      <p class="em-p">
+        Mi chiamo Andrea Morganti, web designer freelance a Pisa.
+        Costruisco siti web professionali da zero, senza limitazioni di piattaforma:
+        veloci, ottimizzati per i motori di ricerca e per il mobile.
+      </p>
+      <ul class="em-ul">
+        <li>Caricamento in meno di 2 secondi (fattore critico per Google)</li>
+        <li>SEO locale: apparire nelle ricerche "${label}${cityLine}"</li>
+        <li>Design su misura, non un template che usano in mille altri siti</li>
+        <li>Pieno controllo dei contenuti, senza vincoli di abbonamento</li>
+      </ul>
+      <p class="em-p">Preventivo gratuito e senza impegno. Posso mostrarvi la differenza concreta.</p>
+      <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Alcuni progetti realizzati di recente:</p>
+      ${buildPortfolioTable()}
+      ${CTA}
+      ${CLOSING()}
+    `,
+  },
+
+  // ─── 10. IL FOLLOW-UP ────────────────────────────────────
+  {
+    label: '10 · Il Follow-up',
+
+    body: `
+      <div class="em-subject-line">Re: presenza online di ${NAME}</div>
+      ${SALUTE}
+      <p class="em-p">
+        Le ho scritto qualche giorno fa riguardo alla presenza online di <strong>${NAME}</strong>.
+        So bene quanto la quotidianita di chi gestisce un'attivita sia piena di impegni,
+        quindi vado diretto al punto.
+      </p>
+      <p class="em-p"><strong>Cosa posso fare per ${NAME}, in sintesi:</strong></p>
+      <ul class="em-ul">
+        <li>Sito web professionale, costruito su misura, non un template preconfezionato</li>
+        <li>Ottimizzato per Google e per chi naviga da smartphone</li>
+        <li>Consegna in <strong>2–3 settimane</strong> dalla conferma</li>
+        <li>Prezzi pensati per le attivita locali, preventivo gratuito</li>
+      </ul>
+      <p class="em-p">
+        Se non e il momento giusto, risponda semplicemente "Non ora" e non ricevera altri messaggi.
+        Se invece vuole saperne di piu, sono disponibile per una breve chiamata, quando preferisce lei.
+      </p>
+      ${buildPortfolioTable()}
+      ${CTA}
+      ${CLOSING('Questa e la mia ultima comunicazione, se non ricevo riscontro.')}
+    `,
+  },
+
+  // ─── 11. PORTFOLIO ───────────────────────────────────────
+  {
+    label: '11 · Portfolio',
+    get body() { return buildPortfolioHTML(); },
+  },
+
+  // ─── 12. COLLABORAZIONE (agenzie digitali) ────────────────
+  {
+    label: '12 · Collaborazione',
+    body: `
+      <div class="em-subject-line">Una possibile collaborazione con ${NAME}</div>
+      <p class="em-salute">Gentile team di <strong>${NAME}</strong>,</p>
+      <p class="em-p">
+        Cercando realtà che si occupano di sviluppo web e comunicazione digitale, sono arrivato a <strong>${NAME}</strong>${reviewNote}.
+        Vi scrivo perché mi piacerebbe capire se ci sia margine per lavorare insieme su qualche progetto.
+      </p>
+      <p class="em-p">
+        Mi chiamo Andrea Morganti, web designer e sviluppatore freelance con base a Pisa.
+        Realizzo siti e applicazioni su misura, sia per clienti diretti sia in appoggio ad altre agenzie
+        quando serve una mano in più su una commessa o su competenze specifiche.
+      </p>
+      <ul class="em-ul">
+        <li>Sviluppo front-end e back-end su commessa, anche in white-label</li>
+        <li>Supporto nei periodi di maggior carico, con tempi concordati</li>
+        <li>Interventi su richieste puntuali: e-commerce, integrazioni, animazioni</li>
+      </ul>
+      <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Per farvi un'idea del mio lavoro, ecco alcuni progetti realizzati negli ultimi anni:</p>
+      ${buildPortfolioTable()}
+      <p class="em-p">
+        Se pensate possa valere la pena parlarne, sono disponibile per una chiamata conoscitiva quando preferite.
+      </p>
+      <div class="em-cta-wrap"><a href="https://www.morgantidesign.it" target="_blank" class="em-btn">Parliamone &rarr;</a></div>
+      ${CLOSING()}
+    `,
+  },
+
+];
+
+// ══════════════════════════════════════════════════════════
+// TRADUZIONI (EN / ES / FR / DE) — 4 template principali
+// ══════════════════════════════════════════════════════════
+const I18N = {
+  en: {
+    flag: 'EN',
+    themeLabel: {
+      food:'restaurant', cafe:'bar/café', wellness:'beauty salon', sport:'gym', hotel:'hotel',
+      health:'medical practice', professional:'professional firm', realestate:'real estate agency',
+      automotive:'repair shop', retail:'shop', tech:'electronics store', craft:'craft business', default:'business',
+    },
+    cityPrep: ' in ',
+    salutePrefix: {
+      food:'Dear owners of the restaurant', cafe:'Dear owners of the café', wellness:'Dear owners of the salon',
+      sport:'Dear owners of the gym', hotel:'Dear owners of the property', health:'Dear team at the medical practice',
+      professional:'Dear team at the firm', realestate:'Dear owners of the real estate agency',
+      automotive:'Dear owners of the repair shop', retail:'Dear owners of the shop', tech:'Dear owners of the shop',
+      craft:'Dear owners of the business', default:'Dear owners',
+    },
+    reviewNote: (count, rating) => count ? ` with ${count} reviews on Google${rating ? ' and an average rating of ' + rating + '/5' : ''}` : '',
+    ctaPrimary: 'Request a free quote',
+    ctaSecondary: "Let's talk, no strings attached",
+    closingThanks: 'I remain available for any questions, and thank you for taking the time to read this email.',
+    signOff: 'Best regards',
+    roleTitle: 'Web Designer &amp; Software Developer',
+    subjectPrefix: (name) => `A small idea for ${name}`,
+    portfolioIntro: "Over the past few years I've had the pleasure of working with organisations such as:",
+    portfolioView: 'View project',
+    portfolioItems: [
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/net7-mockup-1-scaled_k15dwe.jpg', title:'Net7 — Digital Solutions', desc:'A digital agency based in Pisa working with companies, public bodies, universities and cultural institutions, turning complex goals into measurable digital experiences.', url:'https://morgantidesign.it/portfolio/net-7-sito-web/', imgRight:false },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910118/premiocambiamenti-2025-scaled_rel240.jpg', title:'Premio Cambiamenti 2026', desc:'The national CNA award for Italian businesses that innovate products, processes and territories. The ninth edition brought together startups and SMEs from across Italy.', url:'https://morgantidesign.it/portfolio/premio-cambiamenti-2026/', imgRight:true },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/confindustria-modello_phxstr.jpg', title:'Confindustria Nautica', desc:'Founded in 1967, Confindustria Nautica represents Italian excellence in the marine sector, promoting recreational boating in Italy and worldwide through a network of forward-thinking entrepreneurs.', url:'https://morgantidesign.it/portfolio/confindustria-nautica-italiana/', imgRight:false },
+    ],
+  },
+  es: {
+    flag: 'ES',
+    themeLabel: {
+      food:'restaurante', cafe:'bar/cafetería', wellness:'salón de belleza', sport:'gimnasio', hotel:'alojamiento',
+      health:'consulta médica', professional:'despacho profesional', realestate:'agencia inmobiliaria',
+      automotive:'taller', retail:'tienda', tech:'tienda de electrónica', craft:'negocio artesanal', default:'negocio',
+    },
+    cityPrep: ' en ',
+    salutePrefix: {
+      food:'Estimados propietarios del restaurante', cafe:'Estimados propietarios del bar', wellness:'Estimados propietarios del salón',
+      sport:'Estimados responsables del gimnasio', hotel:'Estimados responsables del alojamiento', health:'Estimados responsables de la consulta médica',
+      professional:'Estimados responsables del despacho', realestate:'Estimados propietarios de la agencia inmobiliaria',
+      automotive:'Estimados propietarios del taller', retail:'Estimados propietarios de la tienda', tech:'Estimados responsables de la tienda',
+      craft:'Estimados responsables del negocio', default:'Estimados propietarios',
+    },
+    reviewNote: (count, rating) => count ? ` con ${count} reseñas en Google${rating ? ' y una valoración media de ' + rating + '/5' : ''}` : '',
+    ctaPrimary: 'Solicite un presupuesto gratuito',
+    ctaSecondary: 'Hablemos sin compromiso',
+    closingThanks: 'Quedo a su completa disposición para cualquier duda y le agradezco el tiempo dedicado a la lectura de este correo.',
+    signOff: 'Un cordial saludo',
+    roleTitle: 'Diseñador Web y Desarrollador de Software',
+    subjectPrefix: (name) => `Una pequeña idea para ${name}`,
+    portfolioIntro: 'En los últimos años he tenido el placer de colaborar con empresas como:',
+    portfolioView: 'Ver proyecto',
+    portfolioItems: [
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/net7-mockup-1-scaled_k15dwe.jpg', title:'Net7 — Soluciones digitales', desc:'Agencia digital con sede en Pisa que colabora con empresas, administraciones públicas, universidades e instituciones culturales, transformando objetivos complejos en experiencias digitales medibles.', url:'https://morgantidesign.it/portfolio/net-7-sito-web/', imgRight:false },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910118/premiocambiamenti-2025-scaled_rel240.jpg', title:'Premio Cambiamenti 2026', desc:'El concurso nacional de la CNA dedicado a las empresas italianas que innovan en productos, procesos y territorios. La novena edición reunió a startups y pymes de toda Italia.', url:'https://morgantidesign.it/portfolio/premio-cambiamenti-2026/', imgRight:true },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/confindustria-modello_phxstr.jpg', title:'Confindustria Nautica', desc:'Fundada en 1967, Confindustria Nautica representa la excelencia italiana en el sector náutico, promoviendo la náutica de recreo en Italia y en el mundo a través de una red de empresarios capaces de innovar.', url:'https://morgantidesign.it/portfolio/confindustria-nautica-italiana/', imgRight:false },
+    ],
+  },
+  fr: {
+    flag: 'FR',
+    themeLabel: {
+      food:'restaurant', cafe:'bar/café', wellness:'salon de beauté', sport:'salle de sport', hotel:'hébergement',
+      health:'cabinet médical', professional:'cabinet professionnel', realestate:'agence immobilière',
+      automotive:'garage', retail:'boutique', tech:"magasin d'électronique", craft:'entreprise artisanale', default:'entreprise',
+    },
+    cityPrep: ' à ',
+    salutePrefix: {
+      food:'Chers propriétaires du restaurant', cafe:'Chers propriétaires du bar', wellness:'Chers propriétaires du salon',
+      sport:'Chers responsables de la salle de sport', hotel:"Chers responsables de l'établissement", health:'Chers responsables du cabinet médical',
+      professional:'Chers responsables du cabinet', realestate:"Chers propriétaires de l'agence immobilière",
+      automotive:'Chers propriétaires du garage', retail:'Chers propriétaires de la boutique', tech:'Chers responsables de la boutique',
+      craft:"Chers responsables de l'entreprise", default:'Chers propriétaires',
+    },
+    reviewNote: (count, rating) => count ? ` avec ${count} avis sur Google${rating ? ' et une note moyenne de ' + rating + '/5' : ''}` : '',
+    ctaPrimary: 'Demandez un devis gratuit',
+    ctaSecondary: 'Parlons-en sans engagement',
+    closingThanks: 'Je reste à votre entière disposition pour toute question et vous remercie du temps consacré à la lecture de cet e-mail.',
+    signOff: 'Cordialement',
+    roleTitle: 'Concepteur Web &amp; Développeur Logiciel',
+    subjectPrefix: (name) => `Une petite idée pour ${name}`,
+    portfolioIntro: "Ces dernières années, j'ai eu le plaisir de collaborer avec des structures comme :",
+    portfolioView: 'Voir le projet',
+    portfolioItems: [
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/net7-mockup-1-scaled_k15dwe.jpg', title:'Net7 — Solutions numériques', desc:'Agence numérique basée à Pise qui collabore avec des entreprises, des administrations publiques, des universités et des institutions culturelles, transformant des objectifs complexes en expériences numériques mesurables.', url:'https://morgantidesign.it/portfolio/net-7-sito-web/', imgRight:false },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910118/premiocambiamenti-2025-scaled_rel240.jpg', title:'Premio Cambiamenti 2026', desc:"Le concours national de la CNA dédié aux entreprises italiennes qui innovent dans leurs produits, leurs processus et leurs territoires. La neuvième édition a réuni des startups et des PME de toute l'Italie.", url:'https://morgantidesign.it/portfolio/premio-cambiamenti-2026/', imgRight:true },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/confindustria-modello_phxstr.jpg', title:'Confindustria Nautica', desc:"Fondée en 1967, Confindustria Nautica représente l'excellence italienne dans le secteur nautique, en promouvant la plaisance en Italie et dans le monde grâce à un réseau d'entrepreneurs capables d'innover.", url:'https://morgantidesign.it/portfolio/confindustria-nautica-italiana/', imgRight:false },
+    ],
+  },
+  de: {
+    flag: 'DE',
+    themeLabel: {
+      food:'Restaurant', cafe:'Bar/Café', wellness:'Schönheitssalon', sport:'Fitnessstudio', hotel:'Unterkunft',
+      health:'Arztpraxis', professional:'Kanzlei', realestate:'Immobilienagentur', automotive:'Werkstatt',
+      retail:'Geschäft', tech:'Elektronikgeschäft', craft:'Handwerksbetrieb', default:'Unternehmen',
+    },
+    cityPrep: ' in ',
+    salutePrefix: {
+      food:'Sehr geehrte Inhaber des Restaurants', cafe:'Sehr geehrte Inhaber des Cafés', wellness:'Sehr geehrte Inhaber des Salons',
+      sport:'Sehr geehrtes Team des Fitnessstudios', hotel:'Sehr geehrtes Team der Unterkunft', health:'Sehr geehrtes Team der Praxis',
+      professional:'Sehr geehrtes Team der Kanzlei', realestate:'Sehr geehrte Inhaber der Immobilienagentur',
+      automotive:'Sehr geehrte Inhaber der Werkstatt', retail:'Sehr geehrte Inhaber des Geschäfts', tech:'Sehr geehrtes Team des Geschäfts',
+      craft:'Sehr geehrtes Team des Unternehmens', default:'Sehr geehrte Inhaber',
+    },
+    reviewNote: (count, rating) => count ? ` mit ${count} Google-Bewertungen${rating ? ' und einer Durchschnittsbewertung von ' + rating + '/5' : ''}` : '',
+    ctaPrimary: 'Kostenloses Angebot anfordern',
+    ctaSecondary: 'Lassen Sie uns unverbindlich sprechen',
+    closingThanks: 'Ich stehe Ihnen gerne für Fragen zur Verfügung und danke Ihnen für die Zeit, die Sie sich für diese E-Mail genommen haben.',
+    signOff: 'Mit freundlichen Grüßen',
+    roleTitle: 'Webdesigner &amp; Softwareentwickler',
+    subjectPrefix: (name) => `Eine kleine Idee für ${name}`,
+    portfolioIntro: 'In den letzten Jahren durfte ich unter anderem mit folgenden Auftraggebern zusammenarbeiten:',
+    portfolioView: 'Projekt ansehen',
+    portfolioItems: [
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/net7-mockup-1-scaled_k15dwe.jpg', title:'Net7 — Digitale Lösungen', desc:'Digitalagentur mit Sitz in Pisa, die mit Unternehmen, öffentlichen Einrichtungen, Universitäten und Kultureinrichtungen zusammenarbeitet und komplexe Ziele in messbare digitale Erlebnisse verwandelt.', url:'https://morgantidesign.it/portfolio/net-7-sito-web/', imgRight:false },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910118/premiocambiamenti-2025-scaled_rel240.jpg', title:'Premio Cambiamenti 2026', desc:'Der nationale CNA-Wettbewerb für italienische Unternehmen, die Produkte, Prozesse und Regionen innovativ gestalten. An der neunten Ausgabe nahmen Startups und KMU aus ganz Italien teil.', url:'https://morgantidesign.it/portfolio/premio-cambiamenti-2026/', imgRight:true },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/confindustria-modello_phxstr.jpg', title:'Confindustria Nautica', desc:'Confindustria Nautica wurde 1967 gegründet und steht für italienische Exzellenz im Bootssektor. Der Verband fördert den Freizeitbootssport in Italien und weltweit über ein Netzwerk innovationsfreudiger Unternehmer.', url:'https://morgantidesign.it/portfolio/confindustria-nautica-italiana/', imgRight:false },
+    ],
+  },
+  ar: {
+    flag: 'AR',
+    dir: 'rtl',
+    themeLabel: {
+      food:'مطعم', cafe:'بار/مقهى', wellness:'صالون تجميل', sport:'صالة رياضية', hotel:'منشأة إقامة',
+      health:'عيادة طبية', professional:'مكتب مهني', realestate:'وكالة عقارية',
+      automotive:'ورشة سيارات', retail:'متجر', tech:'متجر إلكترونيات', craft:'حرفي', default:'نشاط تجاري',
+    },
+    cityPrep: ' في ',
+    salutePrefix: {
+      food:'السادة الأعزاء أصحاب المطعم', cafe:'السادة الأعزاء أصحاب المقهى', wellness:'السادة الأعزاء أصحاب الصالون',
+      sport:'السادة الأعزاء القائمين على الصالة الرياضية', hotel:'السادة الأعزاء القائمين على المنشأة', health:'السادة الأعزاء فريق العيادة',
+      professional:'السادة الأعزاء فريق المكتب', realestate:'السادة الأعزاء أصحاب الوكالة العقارية',
+      automotive:'السادة الأعزاء أصحاب الورشة', retail:'السادة الأعزاء أصحاب المتجر', tech:'السادة الأعزاء فريق المتجر',
+      craft:'السادة الأعزاء أصحاب النشاط', default:'السادة الأعزاء',
+    },
+    reviewNote: (count, rating) => count ? ` حيث حصل على ${count} تقييم على غوغل${rating ? ' بمعدل ' + rating + ' من 5' : ''}` : '',
+    ctaPrimary: 'اطلبوا عرض سعر مجاني',
+    ctaSecondary: 'لنتحدث دون أي التزام',
+    closingThanks: 'أبقى تحت تصرفكم لأي استفسار، وأشكركم على الوقت الذي خصصتموه لقراءة هذه الرسالة.',
+    signOff: 'مع خالص التحية',
+    roleTitle: 'مصمم مواقع ومطوّر برمجيات',
+    subjectPrefix: (name) => `فكرة بسيطة من أجل ${name}`,
+    portfolioIntro: 'كان لي الشرف خلال السنوات الأخيرة أن أتعاون مع جهات مثل:',
+    portfolioView: 'عرض المشروع',
+    portfolioItems: [
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/net7-mockup-1-scaled_k15dwe.jpg', title:'نت 7 — حلول رقمية', desc:'شركة رقمية مقرها بيزا تتعاون مع شركات وهيئات عامة وجامعات ومؤسسات ثقافية، وتحوّل أهدافًا معقدة إلى تجارب رقمية قابلة للقياس.', url:'https://morgantidesign.it/portfolio/net-7-sito-web/', imgRight:false },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910118/premiocambiamenti-2025-scaled_rel240.jpg', title:'جائزة بريميو كامبيامنتي 2026', desc:'مسابقة وطنية تنظمها CNA مخصصة للشركات الإيطالية التي تبتكر في المنتجات والعمليات والمناطق. جمعت النسخة التاسعة شركات ناشئة وصغيرة ومتوسطة من جميع أنحاء إيطاليا.', url:'https://morgantidesign.it/portfolio/premio-cambiamenti-2026/', imgRight:true },
+      { img:'https://res.cloudinary.com/jvrsszrd/image/upload/v1784910117/confindustria-modello_phxstr.jpg', title:'كونفيندوستريا الملاحة', desc:'تأسست عام 1967، وتمثل كونفيندوستريا الملاحة التميز الإيطالي في القطاع البحري، وتروّج للملاحة الترفيهية في إيطاليا والعالم عبر شبكة من رواد أعمال قادرين على الابتكار.', url:'https://morgantidesign.it/portfolio/confindustria-nautica-italiana/', imgRight:false },
+    ],
+  },
+};
+
+function foreignLabel(lang)     { return I18N[lang].themeLabel[themeKey] || I18N[lang].themeLabel.default; }
+function foreignCityLine(lang)  { return city ? `${I18N[lang].cityPrep}${city}` : ''; }
+function foreignReviewNote(lang){ return ''; }
+function foreignSalute(lang) {
+  const prefix = I18N[lang].salutePrefix[themeKey] || I18N[lang].salutePrefix.default;
+  return `<p class="em-salute">${prefix} <strong>${NAME}</strong>,</p>`;
+}
+function foreignCTA(lang, text) {
+  return `<div class="em-cta-wrap"><a href="https://www.morgantidesign.it" target="_blank" class="em-btn">${text} &rarr;</a></div>`;
+}
+function foreignClosing(lang, extra = '') {
+  const i = I18N[lang];
+  return `
+  <div class="em-closing">${extra ? `<p>${extra}</p>` : ''}
+    <p>${i.closingThanks}</p>
+  </div>
+  <div class="em-sign">
+    <div class="em-sign-left">${i.signOff}</div>
+    <div class="em-sign-right">
+      <div class="em-sign-name">Andrea Morganti</div>
+      <div class="em-sign-role">${i.roleTitle}</div>
+    </div>
+  </div>`;
+}
+function foreignPortfolioTable(lang) {
+  const items    = I18N[lang].portfolioItems;
+  const viewText = I18N[lang].portfolioView;
+  const rows = items.map(p => {
+    const imgCell = `
+      <td class="em-port-row" width="240" style="vertical-align:middle;width:240px;padding:0;line-height:0">
+        <a href="${p.url}" target="_blank" style="display:block;text-decoration:none;border:0;line-height:0">
+          <img class="em-port-img" src="${p.img}" alt="${p.title}" width="240"
+               style="display:block;width:240px;max-width:240px;height:auto;border-radius:8px;border:0;box-shadow:0 6px 20px rgba(0,0,0,.15)">
+        </a>
+      </td>`;
+    const gutter = `<td class="em-port-gutter" width="32" style="width:32px;font-size:0">&nbsp;</td>`;
+    const textCell = `
+      <td class="em-port-row" style="vertical-align:middle;font-family:Arial,Helvetica,sans-serif;padding:0">
+        <div style="font-size:15px;font-weight:700;color:#111111;margin-bottom:8px;line-height:1.3;font-family:Arial,Helvetica,sans-serif">${p.title}</div>
+        <div style="font-size:13px;color:#555555;line-height:1.85;margin-bottom:16px;font-family:Arial,Helvetica,sans-serif">${p.desc}</div>
+        <a href="${p.url}" target="_blank"
+           style="display:inline-block;background:#1abc9c;color:#ffffff !important;border-radius:5px;padding:9px 22px;font-size:12px;font-weight:700;text-decoration:none;font-family:Arial,Helvetica,sans-serif;letter-spacing:.03em">${viewText} &rarr;</a>
+      </td>`;
+    const cols = p.imgRight
+      ? `${textCell}${gutter}${imgCell}`
+      : `${imgCell}${gutter}${textCell}`;
+    return `<tr>${cols}</tr>`;
+  }).join(`
+    <tr><td colspan="3" height="22" style="font-size:0">&nbsp;</td></tr>
+    <tr><td colspan="3" height="1" bgcolor="#e8e8e8" style="background:#e8e8e8;font-size:0;line-height:0">&nbsp;</td></tr>
+    <tr><td colspan="3" height="22" style="font-size:0">&nbsp;</td></tr>
+  `);
+  return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:28px 0 20px">${rows}</table>`;
+}
+
+function buildForeignTemplates(lang) {
+  const i         = I18N[lang];
+  const label     = foreignLabel(lang);
+  const cityLine  = foreignCityLine(lang);
+  const reviewNote= foreignReviewNote(lang);
+  const salute    = foreignSalute(lang);
+
+  const T = {
+    en: [
+      { label: '1 · The Search', body: `
+        <div class="em-subject-line">I came across ${NAME}</div>
+        ${salute}
+        <p class="em-p">I came across <strong>${NAME}</strong>${reviewNote}. I noticed that, despite the great online reputation, the ${label} doesn't have a dedicated website yet.</p>
+        <p class="em-p">My name is Andrea Morganti and I'm a freelance web designer based in Pisa, Italy. For years I've been building professional websites for businesses, designed to be fast, optimised for Google and perfect to browse from a smartphone.</p>
+        <div class="em-highlight">${themeKey === 'food'
+          ? 'A dedicated website would let you showcase the ' + label + ', display the menu, tell your story and make it easier for new customers to reach you: a reference point of your own, not just listing sites and social media.'
+          : 'A dedicated website would let you showcase your business, tell your story and make it easier for new customers to reach you: a reference point of your own, not just listing sites and social media.'
+        }</div>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Every project is built from scratch, without templates. I'd do the same for your business.</p>
+        <p class="em-p">If this sounds interesting, I'd be happy to put together a first proposal for you free of charge, with no obligation.</p>
+        ${foreignCTA(lang, i.ctaSecondary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '2 · The Short One', body: `
+        <div class="em-subject-line">Just one thing</div>
+        ${salute}
+        <p class="em-p">My name is Andrea Morganti, freelance web designer based in Pisa, Italy.</p>
+        <p class="em-p">I came across <strong>${NAME}</strong>${reviewNote}. No website. I thought it might be worth writing to you.</p>
+        <p class="em-p">I build professional websites for businesses like yours: fast, visible on Google, optimised for smartphones. Free quote, delivery in 2–3 weeks.</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">If you'd like to know more, I'm here.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '3 · The Broken Site', body: `
+        <div class="em-subject-line">${WEBSITE_STATUS === 'error' ? NAME + "'s website is returning an error" : "I can't open " + NAME + "'s website"}</div>
+        ${salute}
+        <p class="em-p">I reached ${NAME}'s website${reviewNote}${websiteLink ? ' (' + websiteLink + ')' : ''}, but ${WEBSITE_STATUS === 'error' ? 'it returned an error when I tried to open it' : "the page won't load, as if the domain were no longer active"}.</p>
+        <p class="em-p">Anyone searching for you online right now hits the same wall, and probably moves on to the next result. With the reputation you have, it's a shame to lose enquiries over a fixable technical issue.</p>
+        <p class="em-p">My name is Andrea Morganti, freelance web designer based in Pisa, Italy. I can rebuild the site from scratch, on reliable infrastructure that's fast and easy to maintain.</p>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">I'm happy to take a free look and tell you what's wrong, no obligation.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '4 · First Impressions', body: `
+        <div class="em-subject-line">First impressions happen online, and ${NAME} deserves to make a good one</div>
+        ${salute}
+        <p class="em-p">Today, before walking into a place or calling an office, almost everyone searches on Google first. What they find (or don't find) decides whether they get in touch or go elsewhere.</p>
+        <p class="em-p">I came across <strong>${NAME}</strong>${reviewNote} and thought a business with this kind of reputation deserves an online presence to match.</p>
+        <p class="em-p">My name is Andrea Morganti, freelance web designer based in Pisa, Italy. I build websites that tell a business's story, attract new customers and work on any device. No pre-made templates: every site is built from scratch.</p>
+        <div class="em-highlight">Free quote, no obligation. I can show you concrete examples before we even start talking numbers.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '5 · The Numbers', body: `
+        <div class="em-subject-line">Three numbers about ${NAME}</div>
+        ${salute}
+        <p class="em-p">I came across <strong>${NAME}</strong>${reviewNote}. No website. I thought it was worth sharing a few numbers.</p>
+        <ul class="em-ul">
+          <li><strong>76%</strong> of people search for a local business online before visiting it</li>
+          <li><strong>57%</strong> wouldn't recommend a business with a poor mobile site, or no site at all</li>
+          <li>Businesses with a professional website receive on average <strong>3 times more enquiries</strong> than those without</li>
+        </ul>
+        <p class="em-p">My name is Andrea Morganti, freelance web designer based in Pisa, Italy. I build custom websites for local businesses: fast, visible on Google and optimised for people browsing on their phones. Free quote, no obligation.</p>
+        <div class="em-highlight">A website isn't a cost: it's a silent salesperson working for you 24 hours a day, 7 days a week.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '6 · Collaboration', body: `
+        <div class="em-subject-line">A possible collaboration with ${NAME}</div>
+        <p class="em-salute">Dear ${NAME} team,</p>
+        <p class="em-p">While looking for teams working in web development and digital communication, I came across <strong>${NAME}</strong>${reviewNote}. I'm writing because I'd like to see if there's room for us to work together on some projects.</p>
+        <p class="em-p">My name is Andrea Morganti, freelance web designer and developer based in Pisa, Italy. I build custom websites and applications, both for direct clients and in support of other agencies when they need an extra hand on a project or specific skills.</p>
+        <ul class="em-ul">
+          <li>Front-end and back-end development on a project basis, including white-label work</li>
+          <li>Extra support during busy periods, on agreed timelines</li>
+          <li>One-off requests: e-commerce, integrations, animations</li>
+        </ul>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">To give you an idea of my work, here are a few projects from the last few years:</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">If you think it might be worth discussing, I'm happy to set up an introductory call whenever suits you.</p>
+        ${foreignCTA(lang, "Let's talk")}
+        ${foreignClosing(lang)}
+      `},
+    ],
+    es: [
+      { label: '1 · La Búsqueda', body: `
+        <div class="em-subject-line">Encontré ${NAME}</div>
+        ${salute}
+        <p class="em-p">Di con <strong>${NAME}</strong>${reviewNote}. Observé que, a pesar de la excelente reputación online, el negocio todavía no cuenta con una página web propia.</p>
+        <p class="em-p">Me llamo Andrea Morganti y soy diseñador web freelance con sede en Pisa, Italia. Desde hace años creo páginas web profesionales para empresas y negocios locales, pensadas para ser rápidas, optimizadas para Google y perfectas desde el móvil.</p>
+        <div class="em-highlight">${themeKey === 'food'
+          ? 'Una web propia le permitiría dar a conocer el ' + label + ', mostrar la carta, contar su historia y facilitar el contacto con nuevos clientes, ofreciendo un punto de referencia oficial más allá de los portales y las redes sociales.'
+          : 'Una web propia le permitiría dar a conocer su negocio, contar su historia y facilitar el contacto con nuevos clientes, ofreciendo un punto de referencia oficial más allá de los portales y las redes sociales.'
+        }</div>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Cada proyecto se construye a medida, sin plantillas. Para su negocio haría lo mismo.</p>
+        <p class="em-p">Si le interesa la idea, estaré encantado de preparar gratis una primera propuesta, sin ningún compromiso.</p>
+        ${foreignCTA(lang, i.ctaSecondary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '2 · Lo Esencial', body: `
+        <div class="em-subject-line">Solo una cosa</div>
+        ${salute}
+        <p class="em-p">Me llamo Andrea Morganti, diseñador web freelance en Pisa, Italia.</p>
+        <p class="em-p">Encontré <strong>${NAME}</strong>${reviewNote}. Sin página web. Pensé que valía la pena escribirle.</p>
+        <p class="em-p">Creo páginas web profesionales para negocios como el suyo: rápidas, visibles en Google, optimizadas para el móvil. Presupuesto gratuito, entrega en 2-3 semanas.</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Si quiere saber más, aquí estoy.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '3 · La Web Caída', body: `
+        <div class="em-subject-line">${WEBSITE_STATUS === 'error' ? 'La web de ' + NAME + ' devuelve un error' : 'No consigo abrir la web de ' + NAME}</div>
+        ${salute}
+        <p class="em-p">Llegué a la web de <strong>${NAME}</strong>${reviewNote}${websiteLink ? ' (' + websiteLink + ')' : ''}, pero ${WEBSITE_STATUS === 'error' ? 'me devolvió un error al abrirla' : 'la página no carga, como si el dominio ya no estuviera activo'}.</p>
+        <p class="em-p">Cualquiera que le busque ahora mismo encuentra el mismo problema, y probablemente pase al siguiente resultado. Con la reputación que tiene, es una pena perder contactos por un problema técnico solucionable.</p>
+        <p class="em-p">Me llamo Andrea Morganti, diseñador web freelance con sede en Pisa, Italia. Puedo reconstruir la web desde cero, sobre una infraestructura fiable, rápida y fácil de mantener.</p>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Puedo echarle un vistazo gratis y decirle qué falla, sin compromiso.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '4 · La Primera Impresión', body: `
+        <div class="em-subject-line">La primera impresión se forma online, y ${NAME} merece que sea buena</div>
+        ${salute}
+        <p class="em-p">Hoy en día, antes de entrar en un local o llamar a una consulta, casi todo el mundo busca primero en Google. Lo que encuentran (o no encuentran) decide si contactan con usted o buscan en otro sitio.</p>
+        <p class="em-p">Encontré <strong>${NAME}</strong>${reviewNote} y pensé que un negocio con esta reputación merece una presencia online a la altura.</p>
+        <p class="em-p">Me llamo Andrea Morganti, diseñador web freelance con sede en Pisa, Italia. Creo páginas que cuentan la identidad de un negocio, atraen nuevos clientes y funcionan en cualquier dispositivo. Nada de plantillas prefabricadas: cada web se construye desde cero.</p>
+        <div class="em-highlight">Presupuesto gratuito y sin compromiso. Puedo mostrarle ejemplos concretos antes incluso de hablar de números.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '5 · Los Datos', body: `
+        <div class="em-subject-line">Tres cifras sobre ${NAME}</div>
+        ${salute}
+        <p class="em-p">Encontré <strong>${NAME}</strong>${reviewNote}. Sin página web. Pensé que valía la pena compartir algunos datos.</p>
+        <ul class="em-ul">
+          <li>El <strong>76%</strong> de las personas busca un negocio local online antes de visitarlo</li>
+          <li>El <strong>57%</strong> no recomendaría un negocio con una web móvil deficiente, o sin web</li>
+          <li>Los negocios con una web profesional reciben de media <strong>3 veces más contactos</strong> que los que no la tienen</li>
+        </ul>
+        <p class="em-p">Me llamo Andrea Morganti, diseñador web freelance en Pisa, Italia. Creo páginas web a medida para negocios locales: rápidas, visibles en Google y optimizadas para quienes navegan desde el móvil. Presupuesto gratuito, sin compromiso.</p>
+        <div class="em-highlight">Una web no es un gasto: es un vendedor silencioso que trabaja para usted las 24 horas, los 7 días de la semana.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '6 · Colaboración', body: `
+        <div class="em-subject-line">Una posible colaboración con ${NAME}</div>
+        <p class="em-salute">Estimado equipo de <strong>${NAME}</strong>,</p>
+        <p class="em-p">Buscando equipos que se dedican al desarrollo web y la comunicación digital, llegué a <strong>${NAME}</strong>${reviewNote}. Les escribo porque me gustaría ver si hay margen para trabajar juntos en algún proyecto.</p>
+        <p class="em-p">Me llamo Andrea Morganti, diseñador web y desarrollador freelance con sede en Pisa, Italia. Creo páginas web y aplicaciones a medida, tanto para clientes directos como en apoyo a otras agencias cuando necesitan una mano extra en un encargo o en competencias específicas.</p>
+        <ul class="em-ul">
+          <li>Desarrollo front-end y back-end por encargo, incluido trabajo en white-label</li>
+          <li>Apoyo en los periodos de mayor carga, con plazos acordados</li>
+          <li>Intervenciones puntuales: e-commerce, integraciones, animaciones</li>
+        </ul>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Para que se hagan una idea de mi trabajo, aquí tienen algunos proyectos realizados en los últimos años:</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Si creen que vale la pena hablarlo, estoy disponible para una llamada de presentación cuando prefieran.</p>
+        ${foreignCTA(lang, 'Hablemos')}
+        ${foreignClosing(lang)}
+      `},
+    ],
+    fr: [
+      { label: '1 · La Découverte', body: `
+        <div class="em-subject-line">J'ai découvert ${NAME}</div>
+        ${salute}
+        <p class="em-p">Je suis tombé sur <strong>${NAME}</strong>${reviewNote}. J'ai remarqué que, malgré une excellente réputation en ligne, l'établissement ne dispose pas encore de site web dédié.</p>
+        <p class="em-p">Je m'appelle Andrea Morganti, je suis concepteur web indépendant basé à Pise, en Italie. Depuis plusieurs années, je crée des sites web professionnels pour des entreprises, conçus pour être rapides, optimisés pour Google et parfaitement lisibles depuis un smartphone.</p>
+        <div class="em-highlight">${themeKey === 'food'
+          ? 'Un site dédié vous permettrait de mettre en valeur votre ' + label + ', présenter votre carte, raconter votre histoire et faciliter le contact avec de nouveaux clients, en offrant une référence officielle au-delà des portails et des réseaux sociaux.'
+          : 'Un site dédié vous permettrait de mettre en valeur votre activité, raconter votre histoire et faciliter le contact avec de nouveaux clients, en offrant une référence officielle au-delà des portails et des réseaux sociaux.'
+        }</div>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Chaque projet est conçu sur mesure, sans modèle préfabriqué. Pour votre activité, je ferais de même.</p>
+        <p class="em-p">Si l'idée vous intéresse, je serais ravi de vous préparer gratuitement une première proposition, sans aucun engagement.</p>
+        ${foreignCTA(lang, i.ctaSecondary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '2 · L’Essentiel', body: `
+        <div class="em-subject-line">Une seule chose</div>
+        ${salute}
+        <p class="em-p">Je m'appelle Andrea Morganti, concepteur web indépendant basé à Pise, en Italie.</p>
+        <p class="em-p">J'ai découvert <strong>${NAME}</strong>${reviewNote}. Aucun site web. J'ai pensé que cela valait la peine de vous écrire.</p>
+        <p class="em-p">Je crée des sites professionnels pour des activités comme la vôtre : rapides, visibles sur Google, optimisés pour le mobile. Devis gratuit, livraison en 2 à 3 semaines.</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Si vous souhaitez en savoir plus, je suis disponible.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '3 · Le Site en Panne', body: `
+        <div class="em-subject-line">${WEBSITE_STATUS === 'error' ? 'Le site de ' + NAME + ' renvoie une erreur' : "Je n'arrive pas à ouvrir le site de " + NAME}</div>
+        ${salute}
+        <p class="em-p">Je suis arrivé sur le site de <strong>${NAME}</strong>${reviewNote}${websiteLink ? ' (' + websiteLink + ')' : ''}, mais ${WEBSITE_STATUS === 'error' ? "j'ai reçu une erreur en l'ouvrant" : "la page ne se charge pas, comme si le domaine n'était plus actif"}.</p>
+        <p class="em-p">Toute personne qui vous recherche en ligne en ce moment tombe sur le même problème, et passe probablement au résultat suivant. Avec la réputation que vous avez, c'est dommage de perdre des contacts pour un problème technique réparable.</p>
+        <p class="em-p">Je m'appelle Andrea Morganti, concepteur web indépendant basé à Pise, en Italie. Je peux reconstruire le site à partir de zéro, sur une infrastructure fiable, rapide et facile à maintenir.</p>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Je peux y jeter un œil gratuitement et vous dire ce qui ne va pas, sans engagement.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '4 · La Première Impression', body: `
+        <div class="em-subject-line">La première impression se joue en ligne, et ${NAME} mérite qu'elle soit bonne</div>
+        ${salute}
+        <p class="em-p">Aujourd'hui, avant d'entrer dans un établissement ou d'appeler un cabinet, presque tout le monde recherche d'abord sur Google. Ce que les internautes trouvent (ou ne trouvent pas) détermine s'ils vous contactent ou vont ailleurs.</p>
+        <p class="em-p">J'ai découvert <strong>${NAME}</strong>${reviewNote} et je me suis dit qu'une activité avec une telle réputation méritait une présence en ligne à la hauteur.</p>
+        <p class="em-p">Je m'appelle Andrea Morganti, concepteur web indépendant basé à Pise, en Italie. Je crée des sites qui racontent l'identité d'une activité, attirent de nouveaux clients et fonctionnent sur tous les appareils. Pas de modèles préfabriqués : chaque site est conçu à partir de zéro.</p>
+        <div class="em-highlight">Devis gratuit et sans engagement. Je peux vous montrer des exemples concrets avant même de parler chiffres.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '5 · Les Chiffres', body: `
+        <div class="em-subject-line">Trois chiffres qui concernent ${NAME}</div>
+        ${salute}
+        <p class="em-p">J'ai découvert <strong>${NAME}</strong>${reviewNote}. Aucun site web. J'ai pensé que cela valait la peine de partager quelques chiffres.</p>
+        <ul class="em-ul">
+          <li><strong>76 %</strong> des personnes recherchent une activité locale en ligne avant de s'y rendre</li>
+          <li><strong>57 %</strong> ne recommanderaient pas une activité avec un site mobile médiocre, ou sans site du tout</li>
+          <li>Les activités dotées d'un site professionnel reçoivent en moyenne <strong>3 fois plus de demandes</strong> que celles qui n'en ont pas</li>
+        </ul>
+        <p class="em-p">Je m'appelle Andrea Morganti, concepteur web indépendant basé à Pise, en Italie. Je crée des sites sur mesure pour les activités locales : rapides, visibles sur Google et optimisés pour la navigation mobile. Devis gratuit, sans engagement.</p>
+        <div class="em-highlight">Un site n'est pas une dépense : c'est un vendeur silencieux qui travaille pour vous 24 heures sur 24, 7 jours sur 7.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '6 · Collaboration', body: `
+        <div class="em-subject-line">Une possible collaboration avec ${NAME}</div>
+        <p class="em-salute">Chère équipe de <strong>${NAME}</strong>,</p>
+        <p class="em-p">En recherchant des équipes travaillant dans le développement web et la communication digitale, je suis arrivé sur <strong>${NAME}</strong>${reviewNote}. Je vous écris car j'aimerais savoir s'il y a de la place pour travailler ensemble sur certains projets.</p>
+        <p class="em-p">Je m'appelle Andrea Morganti, concepteur web et développeur indépendant basé à Pise, en Italie. Je crée des sites web et des applications sur mesure, aussi bien pour des clients directs qu'en soutien à d'autres agences lorsqu'elles ont besoin d'un coup de main supplémentaire sur une mission ou sur des compétences spécifiques.</p>
+        <ul class="em-ul">
+          <li>Développement front-end et back-end à la mission, y compris en marque blanche</li>
+          <li>Renfort pendant les périodes de forte charge, selon des délais convenus</li>
+          <li>Interventions ponctuelles : e-commerce, intégrations, animations</li>
+        </ul>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Pour vous donner une idée de mon travail, voici quelques projets réalisés ces dernières années :</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Si l'idée vous semble intéressante, je suis disponible pour un appel de présentation quand vous voulez.</p>
+        ${foreignCTA(lang, 'Discutons-en')}
+        ${foreignClosing(lang)}
+      `},
+    ],
+    de: [
+      { label: '1 · Die Suche', body: `
+        <div class="em-subject-line">Ich bin auf ${NAME} gestoßen</div>
+        ${salute}
+        <p class="em-p">Ich bin auf <strong>${NAME}</strong>${reviewNote} gestoßen. Mir ist aufgefallen, dass trotz des hervorragenden Online-Rufs noch keine eigene Website vorhanden ist.</p>
+        <p class="em-p">Mein Name ist Andrea Morganti, ich bin freiberuflicher Webdesigner mit Sitz in Pisa, Italien. Seit Jahren erstelle ich professionelle Websites für Unternehmen: schnell, für Google optimiert und perfekt für die Nutzung auf dem Smartphone.</p>
+        <div class="em-highlight">${themeKey === 'food'
+          ? 'Eine eigene Website würde es Ihnen ermöglichen, Ihr ' + label + ' zu präsentieren, die Speisekarte zu zeigen, Ihre Geschichte zu erzählen und den Kontakt mit neuen Kunden zu erleichtern: ein eigener Anlaufpunkt neben Portalen und sozialen Netzwerken.'
+          : 'Eine eigene Website würde es Ihnen ermöglichen, Ihr Unternehmen zu präsentieren, Ihre Geschichte zu erzählen und den Kontakt mit neuen Kunden zu erleichtern: ein eigener Anlaufpunkt neben Portalen und sozialen Netzwerken.'
+        }</div>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Jedes Projekt entsteht individuell, ohne Vorlage. Für Ihr Unternehmen würde ich genauso vorgehen.</p>
+        <p class="em-p">Falls Sie Interesse haben, erstelle ich Ihnen gerne kostenlos und unverbindlich einen ersten Vorschlag.</p>
+        ${foreignCTA(lang, i.ctaSecondary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '2 · Kurz und knapp', body: `
+        <div class="em-subject-line">Nur eine Sache</div>
+        ${salute}
+        <p class="em-p">Mein Name ist Andrea Morganti, freiberuflicher Webdesigner in Pisa, Italien.</p>
+        <p class="em-p">Ich bin auf <strong>${NAME}</strong>${reviewNote} gestoßen. Keine Website. Ich dachte, es lohnt sich, Ihnen zu schreiben.</p>
+        <p class="em-p">Ich erstelle professionelle Websites für Unternehmen wie Ihres: schnell, bei Google sichtbar, für Smartphones optimiert. Kostenloses Angebot, Lieferung in 2–3 Wochen.</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Falls Sie mehr erfahren möchten, bin ich für Sie da.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '3 · Die defekte Website', body: `
+        <div class="em-subject-line">${WEBSITE_STATUS === 'error' ? 'Die Website von ' + NAME + ' gibt einen Fehler zurück' : 'Ich kann die Website von ' + NAME + ' nicht öffnen'}</div>
+        ${salute}
+        <p class="em-p">Ich bin auf die Website von <strong>${NAME}</strong>${reviewNote}${websiteLink ? ' (' + websiteLink + ')' : ''} gestoßen, aber ${WEBSITE_STATUS === 'error' ? 'beim Öffnen wurde ein Fehler angezeigt' : 'die Seite lädt nicht, als wäre die Domain nicht mehr aktiv'}.</p>
+        <p class="em-p">Wer Sie gerade online sucht, stößt auf dasselbe Problem und geht wahrscheinlich zum nächsten Ergebnis über. Bei Ihrem Ruf ist es schade, Anfragen wegen eines behebbaren technischen Problems zu verlieren.</p>
+        <p class="em-p">Mein Name ist Andrea Morganti, freiberuflicher Webdesigner mit Sitz in Pisa, Italien. Ich kann die Website von Grund auf neu aufbauen, auf einer zuverlässigen, schnellen und leicht zu pflegenden Infrastruktur.</p>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Ich schaue mir das gerne kostenlos an und sage Ihnen, woran es liegt, unverbindlich.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '4 · Der erste Eindruck', body: `
+        <div class="em-subject-line">Der erste Eindruck entsteht online, und ${NAME} verdient einen guten</div>
+        ${salute}
+        <p class="em-p">Bevor man heute ein Lokal betritt oder eine Praxis anruft, sucht fast jeder zuerst bei Google. Was die Menschen dort finden (oder eben nicht finden) entscheidet, ob sie Kontakt aufnehmen oder woanders hingehen.</p>
+        <p class="em-p">Ich bin auf <strong>${NAME}</strong>${reviewNote} gestoßen und dachte, ein Unternehmen mit diesem Ruf verdient eine ebenso überzeugende Online-Präsenz.</p>
+        <p class="em-p">Mein Name ist Andrea Morganti, freiberuflicher Webdesigner mit Sitz in Pisa, Italien. Ich erstelle Websites, die die Identität eines Unternehmens erzählen, neue Kunden gewinnen und auf jedem Gerät funktionieren. Keine fertigen Vorlagen: jede Website entsteht von Grund auf neu.</p>
+        <div class="em-highlight">Kostenloses und unverbindliches Angebot. Ich kann Ihnen konkrete Beispiele zeigen, noch bevor wir über Zahlen sprechen.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '5 · Die Zahlen', body: `
+        <div class="em-subject-line">Drei Zahlen zu ${NAME}</div>
+        ${salute}
+        <p class="em-p">Ich bin auf <strong>${NAME}</strong>${reviewNote} gestoßen. Keine Website. Ich dachte, es lohnt sich, ein paar Zahlen zu teilen.</p>
+        <ul class="em-ul">
+          <li><strong>76 %</strong> der Menschen suchen online nach einem lokalen Unternehmen, bevor sie es besuchen</li>
+          <li><strong>57 %</strong> würden ein Unternehmen mit einer schlechten mobilen Website (oder ganz ohne Website) nicht weiterempfehlen</li>
+          <li>Unternehmen mit professioneller Website erhalten im Schnitt <strong>3-mal mehr Anfragen</strong> als Unternehmen ohne</li>
+        </ul>
+        <p class="em-p">Mein Name ist Andrea Morganti, freiberuflicher Webdesigner in Pisa, Italien. Ich erstelle maßgeschneiderte Websites für lokale Unternehmen: schnell, bei Google sichtbar und für die mobile Nutzung optimiert. Kostenloses, unverbindliches Angebot.</p>
+        <div class="em-highlight">Eine Website ist keine Kostenstelle, sondern ein stiller Verkäufer, der 24 Stunden am Tag, 7 Tage die Woche für Sie arbeitet.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '6 · Zusammenarbeit', body: `
+        <div class="em-subject-line">Eine mögliche Zusammenarbeit mit ${NAME}</div>
+        <p class="em-salute">Sehr geehrtes Team von <strong>${NAME}</strong>,</p>
+        <p class="em-p">Auf der Suche nach Teams, die sich mit Webentwicklung und digitaler Kommunikation beschäftigen, bin ich auf <strong>${NAME}</strong>${reviewNote} gestoßen. Ich schreibe Ihnen, weil ich gerne herausfinden möchte, ob es Spielraum gibt, gemeinsam an Projekten zu arbeiten.</p>
+        <p class="em-p">Mein Name ist Andrea Morganti, freiberuflicher Webdesigner und Entwickler mit Sitz in Pisa, Italien. Ich erstelle maßgeschneiderte Websites und Anwendungen, sowohl für Direktkunden als auch zur Unterstützung anderer Agenturen, wenn diese bei einem Auftrag oder bestimmten Kompetenzen zusätzliche Hilfe benötigen.</p>
+        <ul class="em-ul">
+          <li>Front-End- und Back-End-Entwicklung im Auftrag, auch als White-Label</li>
+          <li>Unterstützung in Phasen hoher Auslastung, zu vereinbarten Zeiten</li>
+          <li>Punktuelle Anfragen: E-Commerce, Integrationen, Animationen</li>
+        </ul>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">Um Ihnen einen Eindruck von meiner Arbeit zu geben, hier einige Projekte der letzten Jahre:</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">Falls es sich Ihrer Meinung nach lohnt, darüber zu sprechen, stehe ich gerne für ein unverbindliches Kennenlerngespräch zur Verfügung.</p>
+        ${foreignCTA(lang, 'Lassen Sie uns sprechen')}
+        ${foreignClosing(lang)}
+      `},
+    ],
+    ar: [
+      { label: '1 · البحث', body: `
+        <div class="em-subject-line">وجدت ${NAME}</div>
+        ${salute}
+        <p class="em-p">وجدت <strong>${NAME}</strong>${reviewNote}. لاحظت أنه رغم السمعة الجيدة على الإنترنت، لا يوجد بعد موقع إلكتروني خاص بالنشاط.</p>
+        <p class="em-p">اسمي أندريا مورغانتي، وأعمل مصمم مواقع مستقلاً ومقري في بيزا، إيطاليا. أصمم منذ سنوات مواقع احترافية للشركات، سريعة ومهيأة لمحركات البحث وتعمل بشكل مثالي على الهاتف المحمول.</p>
+        <div class="em-highlight">${themeKey === 'food'
+          ? 'موقع خاص يتيح لكم إبراز ' + label + '، عرض قائمة الطعام، ورواية قصتكم، وتسهيل التواصل مع عملاء جدد، إلى جانب نقطة مرجعية رسمية بعيدًا عن المنصات ووسائل التواصل الاجتماعي.'
+          : 'موقع خاص يتيح لكم إبراز نشاطكم، ورواية قصتكم، وتسهيل التواصل مع عملاء جدد، إلى جانب نقطة مرجعية رسمية بعيدًا عن المنصات ووسائل التواصل الاجتماعي.'
+        }</div>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">كل مشروع يُبنى خصيصًا دون قوالب جاهزة. سأفعل الشيء نفسه من أجل نشاطكم.</p>
+        <p class="em-p">إذا كانت الفكرة تهمكم، يسعدني إعداد عرض أولي مجانًا ودون أي التزام.</p>
+        ${foreignCTA(lang, i.ctaSecondary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '2 · باختصار', body: `
+        <div class="em-subject-line">أمر واحد فقط</div>
+        ${salute}
+        <p class="em-p">اسمي أندريا مورغانتي، مصمم مواقع مستقل في بيزا، إيطاليا.</p>
+        <p class="em-p">وجدت <strong>${NAME}</strong>${reviewNote}. لا يوجد موقع إلكتروني. فكرت أنه يستحق المراسلة.</p>
+        <p class="em-p">أصمم مواقع احترافية لأنشطة مثل نشاطكم: سريعة وظاهرة على غوغل ومهيأة للهاتف المحمول. عرض سعر مجاني، والتسليم خلال أسبوعين إلى ثلاثة.</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">إذا أردتم معرفة المزيد، أنا هنا.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '3 · الموقع المعطّل', body: `
+        <div class="em-subject-line">${WEBSITE_STATUS === 'error' ? 'موقع ' + NAME + ' يُظهر خطأ' : 'لا أستطيع فتح موقع ' + NAME}</div>
+        ${salute}
+        <p class="em-p">وصلت إلى موقع <strong>${NAME}</strong>${reviewNote}${websiteLink ? ' (' + websiteLink + ')' : ''}، لكن ${WEBSITE_STATUS === 'error' ? 'ظهر لي خطأ عند فتحه' : 'الصفحة لا تُحمَّل، وكأن النطاق لم يعد نشطًا'}.</p>
+        <p class="em-p">كل من يبحث عنكم الآن عبر الإنترنت يواجه نفس المشكلة، وربما ينتقل إلى النتيجة التالية. مع السمعة التي تتمتعون بها، من المؤسف خسارة تواصل بسبب مشكلة تقنية يمكن حلها.</p>
+        <p class="em-p">اسمي أندريا مورغانتي، مصمم مواقع مستقل في بيزا، إيطاليا. يمكنني إعادة بناء الموقع من الصفر، على بنية تحتية موثوقة وسريعة وسهلة الصيانة.</p>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">${i.portfolioIntro}</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">يسعدني إلقاء نظرة مجانية وإخباركم بالمشكلة، دون أي التزام.</p>
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '4 · الانطباع الأول', body: `
+        <div class="em-subject-line">الانطباع الأول يتكوّن عبر الإنترنت، و${NAME} يستحق انطباعًا جيدًا</div>
+        ${salute}
+        <p class="em-p">اليوم، قبل دخول مكان أو الاتصال بمكتب، يبحث معظم الناس أولاً على غوغل. ما يجدونه، أو لا يجدونه، يحدد ما إذا كانوا سيتواصلون معكم أو يذهبون إلى مكان آخر.</p>
+        <p class="em-p">وجدت <strong>${NAME}</strong>${reviewNote} واعتقدت أن نشاطًا بهذه السمعة يستحق حضورًا رقميًا بنفس المستوى.</p>
+        <p class="em-p">اسمي أندريا مورغانتي، مصمم مواقع مستقل ومقري في بيزا، إيطاليا. أصمم مواقع تروي هوية النشاط التجاري وتجذب عملاء جدد وتعمل على جميع الأجهزة. لا قوالب جاهزة، كل موقع يُبنى من الصفر.</p>
+        <div class="em-highlight">عرض سعر مجاني ودون أي التزام. يمكنني أن أريكم أمثلة ملموسة قبل الحديث عن الأرقام حتى.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '5 · الأرقام', body: `
+        <div class="em-subject-line">ثلاثة أرقام تخص ${NAME}</div>
+        ${salute}
+        <p class="em-p">وجدت <strong>${NAME}</strong>${reviewNote}. لا يوجد موقع إلكتروني. فكرت أنه يستحق مشاركة بعض الأرقام.</p>
+        <ul class="em-ul">
+          <li><strong>76%</strong> من الأشخاص يبحثون عن نشاط تجاري محلي عبر الإنترنت قبل زيارته</li>
+          <li><strong>57%</strong> لن ينصحوا بنشاط تجاري بموقع ضعيف على الهاتف المحمول، أو بلا موقع إطلاقًا</li>
+          <li>الأنشطة التجارية التي تملك موقعًا احترافيًا تحصل في المتوسط على <strong>ثلاثة أضعاف عدد التواصلات</strong> مقارنة بتلك التي لا تملك موقعًا</li>
+        </ul>
+        <p class="em-p">اسمي أندريا مورغانتي، مصمم مواقع مستقل في بيزا، إيطاليا. أصمم مواقع مخصصة للأنشطة التجارية المحلية: سريعة وظاهرة على غوغل ومهيأة لمن يتصفح من الهاتف المحمول. عرض سعر مجاني، ودون أي التزام.</p>
+        <div class="em-highlight">الموقع الإلكتروني ليس تكلفة، بل بائع صامت يعمل من أجلكم على مدار الساعة طوال أيام الأسبوع.</div>
+        ${foreignPortfolioTable(lang)}
+        ${foreignCTA(lang, i.ctaPrimary)}
+        ${foreignClosing(lang)}
+      `},
+      { label: '6 · تعاون', body: `
+        <div class="em-subject-line">تعاون محتمل مع ${NAME}</div>
+        <p class="em-salute">فريق <strong>${NAME}</strong> الأعزاء،</p>
+        <p class="em-p">أثناء بحثي عن فرق تعمل في مجال تطوير الويب والتواصل الرقمي، وصلت إلى <strong>${NAME}</strong>${reviewNote}. أكتب إليكم لأنني أود معرفة ما إذا كان هناك مجال للعمل معًا على بعض المشاريع.</p>
+        <p class="em-p">اسمي أندريا مورغانتي، مصمم مواقع ومطوّر برمجيات مستقل ومقري في بيزا، إيطاليا. أصمم مواقع وتطبيقات مخصصة، سواء للعملاء المباشرين أو كدعم لوكالات أخرى عندما تحتاج إلى مساعدة إضافية في مشروع أو مهارات محددة.</p>
+        <ul class="em-ul">
+          <li>تطوير الواجهة الأمامية والخلفية حسب الطلب، بما في ذلك العمل بنظام العلامة البيضاء (white-label)</li>
+          <li>دعم خلال فترات ضغط العمل، ضمن مواعيد متفق عليها</li>
+          <li>تدخلات محددة: التجارة الإلكترونية، عمليات الدمج، الرسوم المتحركة</li>
+        </ul>
+        <p class="em-p" style="font-size:.93rem;color:#2d2d2d;line-height:1.9;margin-bottom:.5rem;font-weight:600">لإعطائكم فكرة عن عملي، إليكم بعض المشاريع المنجزة في السنوات الأخيرة:</p>
+        ${foreignPortfolioTable(lang)}
+        <p class="em-p">إذا كنتم ترون أن الأمر يستحق النقاش، يسعدني ترتيب مكالمة تعارفية في الوقت الذي يناسبكم.</p>
+        ${foreignCTA(lang, 'لنتحدث')}
+        ${foreignClosing(lang)}
+      `},
+    ],
+  };
+
+  return T[lang];
+}
+
+function getTemplatesForLang(lang) {
+  return lang === 'it' ? TEMPLATES : buildForeignTemplates(lang);
+}
+
+function buildSuggestedSubject(lang) {
+  const bodyEl = document.getElementById('em-body');
+  const subjEl = bodyEl && bodyEl.querySelector('.em-subject-line');
+  if (subjEl && subjEl.textContent.trim()) {
+    return subjEl.textContent.trim();
+  }
+  if (lang === 'it') {
+    const art = getItalianArticle(NAME, BTYPE);
+    return `Una piccola idea per ${art ? art + ' ' : ''}${NAME}`;
+  }
+  return I18N[lang].subjectPrefix(NAME);
+}
+
+// ── Render ──
+let current = 0;
+let LANG = 'it';
+
+function renderTemplate(idx) {
+  current = idx;
+  const templates = getTemplatesForLang(LANG);
+  const t = templates[idx] || templates[0];
+  const body = document.getElementById('em-body');
+  body.innerHTML = t.body;
+  body.setAttribute('dir', I18N[LANG]?.dir || 'ltr');
+  document.querySelectorAll('.tpl-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+  refreshSuggestedSubject();
+}
+
+function buildNav() {
+  const templates = getTemplatesForLang(LANG);
+  document.getElementById('tplNav').innerHTML = templates.map((t, i) =>
+    `<button class="tpl-btn" onclick="renderTemplate(${i})">${t.label}</button>`
+  ).join('');
+}
+
+function refreshSuggestedSubject() {
+  const text = buildSuggestedSubject(LANG);
+  document.getElementById('suggestedSubject').textContent = text;
+  document.getElementById('suggestedSubject').dataset.value = text;
+}
+
+function switchLang(lang) {
+  LANG = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  buildNav();
+  renderTemplate(0);
+  refreshSuggestedSubject();
+}
+
+function buildLangNav() {
+  const langs = [{ code:'it', flag:'IT' }, ...Object.keys(I18N).map(code => ({ code, flag: I18N[code].flag }))];
+  document.getElementById('langNav').innerHTML = langs.map(l =>
+    `<button class="lang-btn${l.code === LANG ? ' active' : ''}" data-lang="${l.code}" onclick="switchLang('${l.code}')">${l.flag}</button>`
+  ).join('');
+}
+
+function nameKey(name) {
+  return (name || '').toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 60);
+}
+
+function logEmailSent() {
+  const templates = getTemplatesForLang(LANG);
+  const t = templates[current] || templates[0];
+  const subject = document.getElementById('suggestedSubject').dataset.value || '';
+  fetch('/api/email-log/' + encodeURIComponent(nameKey(NAME)), {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ name: NAME, subject, template: t ? t.label : '', lang: LANG })
+  }).catch(() => {});
+}
+
+function copyPlainText() {
+  const bodyEl = document.getElementById('em-body');
+  const text   = bodyEl.innerText.replace(/\n{3,}/g, '\n\n').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn  = document.querySelector('[onclick="copyPlainText()"]');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Copiato!';
+    setTimeout(() => { btn.innerHTML = orig; }, 2200);
+    logEmailSent();
+  });
+}
+
+// ── Testo preheader nascosto: usato dai client email (Gmail, Outlook, Apple Mail...)
+// come anteprima nella inbox al posto del primo contenuto visibile (i contatti nell'header) ──
+function getPreheaderText() {
+  const bodyEl = document.getElementById('em-body');
+  const firstP = bodyEl.querySelector('.em-p, .em-salute');
+  let text = (firstP ? firstP.innerText : bodyEl.innerText) || '';
+  text = text.replace(/\s+/g, ' ').trim();
+  return text.length > 150 ? text.slice(0, 147).trim() + '…' : text;
+}
+
+function buildPreheaderHTML() {
+  const preheaderText = getPreheaderText().replace(/</g, '&lt;');
+  return `
+    <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;color:transparent;">
+      ${preheaderText}
+    </div>
+    <div style="display:none;white-space:nowrap;font:15px courier;line-height:0;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
+      ${'&#8199;&zwnj;'.repeat(120)}
+    </div>`;
+}
+
+function downloadEmailHTML() {
+  const btn = document.querySelector('[onclick="downloadEmailHTML()"]');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>...';
+  btn.disabled = true;
+
+  // Clone card (logo already has base64 src from server)
+  const cardClone = document.getElementById('email-card').cloneNode(true);
+
+  // Remove IDs that would clash in standalone file
+  cardClone.removeAttribute('id');
+
+  const style = document.querySelector('style').textContent;
+
+  const html = `<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Email – ${NAME.replace(/</g,'&lt;')}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+${style}
+body {
+  background: #1a1f2e;
+  background-image:
+    radial-gradient(ellipse at 15% 0%, rgba(26,188,156,.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 100%, rgba(13,148,136,.08) 0%, transparent 50%);
+  min-height: 100vh;
+  padding: 28px 16px 48px;
+}
+</style>
+</head>
+<body>
+${buildPreheaderHTML()}
+${cardClone.outerHTML}
+</body>
+</html>`;
+
+  const blob2 = new Blob([html], {type: 'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob2);
+  a.download = `email_${NAME.replace(/[^a-zA-Z0-9]/g, '_')}.html`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  btn.innerHTML = orig;
+  btn.disabled  = false;
+}
+
+// ── CSS class → inline style map per email client ──────────────────────
+function inlineifyForEmail(html) {
+  const map = [
+    [/class="em-subject-line"/g,
+      'style="font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:800;color:#111111;line-height:1.35;border-bottom:2px solid #eeeeee;padding-bottom:14px;margin:0 0 22px 0;display:block"'],
+    [/class="em-salute"/g,
+      'style="font-size:15px;color:#2d2d2d;margin:0 0 18px 0;font-weight:500"'],
+    [/class="em-p"/g,
+      'style="font-size:14px;color:#2d2d2d;line-height:1.85;margin:0 0 14px 0"'],
+    [/class="em-ul"/g,
+      'style="font-size:14px;color:#2d2d2d;line-height:1.85;margin:0 0 14px 0;padding-left:22px"'],
+    [/class="em-highlight"/g,
+      'style="border-left:4px solid #1abc9c;background:#f0fdf9;padding:12px 18px;margin:18px 0;font-size:13px;color:#1a5c52;line-height:1.75;display:block"'],
+    [/class="em-cta-wrap"/g,
+      'style="margin:26px 0 8px"'],
+    [/class="em-btn"/g,
+      'style="display:inline-block;background:#1abc9c;color:#ffffff;border-radius:6px;padding:13px 36px;font-weight:700;font-size:14px;text-decoration:none;font-family:Arial,Helvetica,sans-serif;letter-spacing:.01em"'],
+    [/class="em-closing"/g,
+      'style="margin-top:32px;font-size:14px;color:#2d2d2d;line-height:1.85"'],
+    [/class="em-sign"/g,
+      'style="margin-top:28px;border-top:1px solid #eeeeee;padding-top:16px"'],
+    [/class="em-sign-left"/g,
+      'style="font-size:14px;color:#777777;margin-bottom:8px"'],
+    [/class="em-sign-right"/g,
+      'style="text-align:right"'],
+    [/class="em-sign-name"/g,
+      'style="font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:16px;color:#111111"'],
+    [/class="em-sign-role"/g,
+      'style="font-size:12px;color:#1abc9c;font-weight:600;margin-top:3px"'],
+  ];
+  let out = html;
+  for (const [rx, rep] of map) out = out.replace(rx, rep);
+  return out;
+}
+
+// ── Genera HTML email-safe (table-based, inline styles, senza SVG) ──────
+function buildRichEmailHTML() {
+  const bodyHTML = inlineifyForEmail(document.getElementById('em-body').innerHTML);
+
+  // Parallelogrammi teal via 3 colonne colorate (sostituto SVG per email client)
+  const tealCols = `
+    <td width="14" bgcolor="#09655a" style="background:#09655a;font-size:0;line-height:0">&nbsp;</td>
+    <td width="11" bgcolor="#0d9488" style="background:#0d9488;font-size:0;line-height:0">&nbsp;</td>
+    <td width="9"  bgcolor="#1abc9c" style="background:#1abc9c;font-size:0;line-height:0">&nbsp;</td>`;
+
+  // Mirror per footer (destra)
+  const tealColsR = `
+    <td width="9"  bgcolor="#1abc9c" style="background:#1abc9c;font-size:0;line-height:0">&nbsp;</td>
+    <td width="11" bgcolor="#0d9488" style="background:#0d9488;font-size:0;line-height:0">&nbsp;</td>
+    <td width="14" bgcolor="#09655a" style="background:#09655a;font-size:0;line-height:0">&nbsp;</td>`;
+
+  // Logo: URL esterno (compatibile con tutti i client email, incluso Hostinger)
+  const logoEl = `<img src="https://res.cloudinary.com/jvrsszrd/image/upload/f_auto,q_auto/android-chrome-192x192-1_epojdt"
+       alt="Andrea Morganti Web Designer" width="90" height="90"
+       style="display:block;border:0;max-width:90px;max-height:90px;margin:0 auto;border-radius:8px">`;
+
+  // Fix rgba → solid per Outlook (non supporta rgba nei bgcolor)
+  const bodyHTMLMso = bodyHTML
+    .replace(/color:rgba\(255,255,255,\.85\)/g, 'color:#d4d4d4')
+    .replace(/color:rgba\(255,255,255,\.88\)/g, 'color:#e0e0e0')
+    .replace(/color:rgba\(255,255,255,\.7\)/g,  'color:#b3b3b3')
+    .replace(/color:rgba\(255,255,255,\.65\)/g, 'color:#a6a6a6');
+
+  // Bottone CTA Outlook-safe via VML
+  const ctaVml = `
+    <!--[if mso]>
+    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+      href="https://www.morgantidesign.it" style="height:46px;v-text-anchor:middle;width:280px" arcsize="13%" fillcolor="#1abc9c" strokecolor="#1abc9c">
+      <w:anchorlock/>
+      <center style="color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700">Richiedete un preventivo gratuito &rarr;</center>
+    </v:roundrect>
+    <![endif]-->`;
+
+  return `<!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
+${buildPreheaderHTML()}
+<style>
+.em-hdr-main{padding:40px 24px 40px 18px!important}
+@media only screen and (max-width:600px){
+  .em-outer-pad{padding:12px 8px 28px!important}
+  .em-wrap{width:100%!important}
+  .em-teal-strip{display:none!important}
+  .em-hdr-spacer{display:none!important;width:0!important}
+  .em-hdr-logo{display:block!important;width:100%!important;text-align:left!important;padding:0 0 10px 0!important}
+  .em-hdr-contacts{display:block!important;width:100%!important;text-align:left!important;font-size:11px!important;white-space:nowrap!important}
+  .em-body-td{padding:24px 16px 20px!important}
+  .em-foot-td{padding:12px 16px!important}
+  .em-foot-left{display:block!important;width:100%!important;text-align:center!important;padding-bottom:4px!important}
+  .em-foot-right{display:block!important;width:100%!important;text-align:center!important}
+  .em-port-img{width:200px!important;max-width:200px!important;height:auto!important}
+  .em-port-row{display:block!important;width:100%!important}
+  .em-port-gutter{display:none!important;width:0!important}
+}
+</style>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background-color:#dce1f6;width:100%;mso-table-lspace:0pt;mso-table-rspace:0pt">
+<tr><td align="center" class="em-outer-pad" style="padding:28px 16px 44px;background-color:#dce1f6">
+<table width="660" cellpadding="0" cellspacing="0" border="0" role="presentation" class="em-wrap" style="max-width:660px;width:100%;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt">
+
+  <!-- ═══ HEADER ═══ -->
+  <tr style="background-color:#1a1f2e">
+    <td class="em-teal-strip" width="14" bgcolor="#09655a" style="background:#09655a;font-size:0;line-height:0;mso-line-height-rule:exactly">&nbsp;</td>
+    <td class="em-teal-strip" width="11" bgcolor="#0d9488" style="background:#0d9488;font-size:0;line-height:0;mso-line-height-rule:exactly">&nbsp;</td>
+    <td class="em-teal-strip" width="9"  bgcolor="#1abc9c" style="background:#1abc9c;font-size:0;line-height:0;mso-line-height-rule:exactly">&nbsp;</td>
+    <td class="em-hdr-main" colspan="4" bgcolor="#1a1f2e" style="background:#1a1f2e;padding:22px 24px 22px 18px">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt">
+        <tr>
+          <td class="em-hdr-spacer" width="12%" style="vertical-align:middle">&nbsp;</td>
+          <td class="em-hdr-logo" style="text-align:left;vertical-align:middle;padding:0 8px">
+            ${logoEl}
+          </td>
+          <td class="em-hdr-contacts" width="33%" style="text-align:right;vertical-align:middle;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:2;mso-line-height-rule:exactly;white-space:nowrap">
+            <a href="tel:+393406228311" style="color:#d4d4d4;text-decoration:none;white-space:nowrap">&#128222; +39 340 6228311</a><br>
+            <a href="mailto:info@morgantidesign.it" style="color:#d4d4d4;text-decoration:none;white-space:nowrap">&#9993; info@morgantidesign.it</a><br>
+            <a href="https://www.morgantidesign.it" style="color:#d4d4d4;text-decoration:none;white-space:nowrap">&#127760; www.morgantidesign.it</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- ═══ TEAL SEPARATOR ═══ -->
+  <tr>
+    <td colspan="7" height="3" bgcolor="#1abc9c" style="background:#1abc9c;font-size:0;line-height:0;mso-line-height-rule:exactly">&nbsp;</td>
+  </tr>
+
+  <!-- ═══ BODY ═══ -->
+  <tr>
+    <td colspan="7" bgcolor="#ffffff" class="em-body-td" style="background:#ffffff;padding:40px 48px 36px">
+      ${bodyHTMLMso}
+      ${ctaVml}
+    </td>
+  </tr>
+
+  <!-- ═══ TEAL SEPARATOR ═══ -->
+  <tr>
+    <td colspan="7" height="3" bgcolor="#1abc9c" style="background:#1abc9c;font-size:0;line-height:0;mso-line-height-rule:exactly">&nbsp;</td>
+  </tr>
+
+  <!-- ═══ FOOTER ═══ -->
+  <tr style="background-color:#1a1f2e">
+    <td colspan="4" bgcolor="#1a1f2e" class="em-foot-td" style="background:#1a1f2e;padding:16px 24px 16px 18px">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="mso-table-lspace:0pt;mso-table-rspace:0pt">
+        <tr>
+          <td class="em-foot-left" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;vertical-align:middle">
+            <a href="tel:+393406228311" style="color:#a6a6a6;text-decoration:none">+39 340 6228311</a>
+            &nbsp;&middot;&nbsp;
+            <a href="mailto:info@morgantidesign.it" style="color:#a6a6a6;text-decoration:none">info@morgantidesign.it</a>
+          </td>
+          <td class="em-foot-right" style="text-align:right;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;vertical-align:middle">
+            <a href="https://www.morgantidesign.it" style="color:#ffffff;text-decoration:none">www.morgantidesign.it</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td class="em-teal-strip" width="9"  bgcolor="#1abc9c" style="background:#1abc9c;font-size:0;line-height:0;mso-line-height-rule:exactly">&nbsp;</td>
+    <td class="em-teal-strip" width="11" bgcolor="#0d9488" style="background:#0d9488;font-size:0;line-height:0;mso-line-height-rule:exactly">&nbsp;</td>
+    <td class="em-teal-strip" width="14" bgcolor="#09655a" style="background:#09655a;font-size:0;line-height:0;mso-line-height-rule:exactly">&nbsp;</td>
+  </tr>
+
+</table>
+</td></tr></table>`;
+}
+
+// ── Copia negli appunti come HTML formattato → incolla direttamente in Gmail ──
+async function copyAsRichEmail() {
+  const btn  = document.getElementById('btnRich');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>...';
+  btn.disabled  = true;
+
+  const html = buildRichEmailHTML();
+
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }) })
+    ]);
+    btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Copiato! Incolla in Gmail';
+    btn.style.background = '#16a34a';
+    setTimeout(() => {
+      btn.innerHTML = orig;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 3500);
+    logEmailSent();
+  } catch(err) {
+    // Fallback: apri finestra con HTML da copiare manualmente
+    const w = window.open('', '_blank', 'width=700,height=500');
+    w.document.write(`<pre style="font-size:12px;word-break:break-all;white-space:pre-wrap">${html.replace(/</g,'&lt;')}</pre>`);
+    btn.innerHTML = orig;
+    btn.disabled  = false;
+    alert('Clipboard API non disponibile. Si apre una finestra con l\'HTML da copiare manualmente.');
+  }
+}
+
+buildLangNav();
+buildNav();
+renderTemplate(0);
+refreshSuggestedSubject();
+</script>
+</body>
+</html>

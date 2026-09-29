@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Morganti Trova Clienti</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    :root { --accent:#4361ee; --accent-dark:#3451d1; --accent-light:#eef0fd; }
+    body { background:#f8f9fb; font-family:'Segoe UI',sans-serif; }
+
+    /* ---- Sidebar ---- */
+    .sidebar {
+      width:300px; min-width:300px; flex-shrink:0;
+      background:#fff; border-right:1px solid #e5e7eb;
+      overflow-y:auto;
+    }
+    .sidebar-inner {
+      display:flex; flex-direction:column; gap:.75rem;
+      padding:1.25rem 1rem; min-height:100%;
+    }
+    .brand { font-size:1rem; font-weight:800; line-height:1.2; }
+    .brand .m { color:var(--accent); }
+    .brand .sub { font-size:.65rem; font-weight:500; color:#9ca3af; letter-spacing:.05em; text-transform:uppercase; }
+
+    /* ---- Form ---- */
+    .form-label-sm { font-size:.78rem; font-weight:600; color:#374151; }
+    .search-btn { background:var(--accent); border:none; border-radius:8px; color:#fff; font-weight:700; padding:.6rem 1rem; width:100%; }
+    .search-btn:hover { background:var(--accent-dark); }
+
+    /* ---- Stat cards ---- */
+    .stat-card {
+      border-radius:10px; padding:.6rem .9rem; font-size:.8rem; font-weight:600;
+      cursor:pointer; border:2px solid transparent; transition:all .12s;
+    }
+    .stat-card:hover { transform:translateY(-1px); }
+    .stat-card.active { border-color:currentColor; }
+    .stat-all   { background:#f1f5f9; color:#475569; }
+    .stat-web   { background:#d1fae5; color:#065f46; }
+    .stat-noweb { background:#fee2e2; color:#991b1b; }
+    .stat-dead  { background:#fef3c7; color:#92400e; }
+
+    /* ---- History ---- */
+    .history-item {
+      border:1px solid #e5e7eb; border-radius:8px; padding:.5rem .75rem;
+      cursor:pointer; font-size:.75rem; transition:background .1s;
+    }
+    .history-item:hover { background:#f8f9fb; }
+    .history-item .h-name { font-weight:600; color:#111; }
+    .history-item .h-meta { color:#9ca3af; }
+    .history-del { color:#d1d5db; cursor:pointer; }
+    .history-del:hover { color:#ef4444; }
+
+    /* ---- Topbar ---- */
+    .topbar {
+      background:#fff; border-bottom:1px solid #e5e7eb;
+      padding:.65rem 1.25rem; display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;
+    }
+
+    /* ---- Table ---- */
+    #results-table thead th {
+      background:#f8f9fb; font-size:.72rem; text-transform:uppercase;
+      letter-spacing:.05em; color:#6b7280; font-weight:700;
+      border-bottom:2px solid #e5e7eb; white-space:nowrap;
+    }
+    #results-table td { vertical-align:middle; font-size:.825rem; }
+    #results-table tbody tr:hover { background:#fafafa; }
+
+    .badge-type { background:var(--accent-light); color:var(--accent); font-size:.68rem; padding:.2em .55em; border-radius:999px; font-weight:600; }
+    .ws-ok { color:#16a34a; } .ws-error { color:#dc2626; }
+    .ws-unreachable { color:#d97706; } .ws-none { color:#9ca3af; }
+
+    /* Proposta button */
+    .btn-proposta {
+      background:#111; color:#fff; border:none; border-radius:6px;
+      padding:.2rem .5rem; font-size:.7rem; font-weight:600; white-space:nowrap;
+      transition:background .15s;
+    }
+    .btn-proposta:hover { background:var(--accent); color:#fff; }
+    .btn-proposta.priority { background:var(--accent); }
+    .btn-proposta.priority:hover { background:var(--accent-dark); }
+
+    /* Pro Mode */
+    .pro-col { display: none; }
+    body.pro-mode .pro-col { display: table-cell; }
+
+    .score-badge {
+      display:inline-block; border-radius:999px; width:22px; height:22px;
+      text-align:center; line-height:22px; font-size:.72rem; font-weight:700;
+      cursor:default;
+    }
+
+    .social-fb      { background:#1877f2; color:#fff; font-size:.68rem; padding:.15em .5em; border-radius:3px; font-weight:600; white-space:nowrap; }
+    .social-ig      { background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); color:#fff; font-size:.68rem; padding:.15em .5em; border-radius:3px; font-weight:600; white-space:nowrap; }
+    .social-generic { background:#6b7280; color:#fff; font-size:.68rem; padding:.15em .5em; border-radius:3px; font-weight:600; white-space:nowrap; }
+
+    .crm-dot { font-size:.68rem; padding:.2em .55em; border-radius:3px; font-weight:600; cursor:pointer; white-space:nowrap; border:none; }
+    .crm-nuovo      { background:#e5e7eb; color:#374151; }
+    .crm-contattato { background:#dbeafe; color:#1d4ed8; }
+    .crm-trattativa { background:#fef3c7; color:#92400e; }
+    .crm-chiuso     { background:#d1fae5; color:#065f46; }
+    .crm-perso      { background:#fee2e2; color:#991b1b; }
+
+    .stat-social { background:#ede9fe; color:#5b21b6; }
+
+    /* Sort */
+    .sort-th { cursor:pointer; user-select:none; }
+    .sort-th:hover { background:#f1f5f9 !important; }
+    .sort-icon { font-size:.58rem; opacity:.3; margin-left:.2rem; }
+    .sort-th.sorted .sort-icon { opacity:1; color:var(--accent); }
+
+    /* Site quality badges */
+    .site-badge { display:inline-block; font-size:.62rem; padding:.1em .42em; border-radius:3px; font-weight:600; margin:.15rem .1rem 0 0; }
+    .sbadge-platform { background:#e0f2fe; color:#0369a1; }
+    .sbadge-old      { background:#fef9c3; color:#854d0e; }
+    .sbadge-nomobile { background:#fce7f3; color:#9d174d; }
+
+    /* Email button */
+    .btn-email { background:#e5e7eb; color:#374151; border:none; border-radius:6px; padding:.2rem .5rem; font-size:.7rem; font-weight:600; white-space:nowrap; transition:background .15s; margin-right:.2rem; }
+    .btn-email:hover { background:#d1d5db; }
+
+    /* Sort quick buttons */
+    .sort-quick-btn { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; border-radius:5px; padding:.18rem .5rem; font-size:.68rem; font-weight:600; cursor:pointer; transition:all .12s; }
+    .sort-quick-btn:hover { background:#e2e8f0; }
+    .sort-quick-btn.sq-active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .filter-chip { font-size:.67rem; font-weight:600; padding:.18rem .55rem; border:1.5px solid #d1d5db; border-radius:20px; background:#fff; color:#374151; cursor:pointer; transition:all .12s; white-space:nowrap; }
+    .filter-chip:hover { border-color:var(--accent); color:var(--accent); }
+    .filter-chip.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .filter-chip-reset { border-color:#ef4444 !important; color:#ef4444 !important; }
+    .filter-chip-reset:hover { background:#ef4444 !important; color:#fff !important; }
+
+    /* ---- Checkbox selection ---- */
+    .cb-col { width:32px; text-align:center; }
+    .row-cb { cursor:pointer; accent-color:var(--accent); width:15px; height:15px; }
+    tr.row-selected { background:#eef0fd !important; }
+    tr.row-excluded td { opacity:.4; }
+    tr.row-excluded td.name-col { text-decoration:line-through; }
+    .excl-badge { display:inline-block; font-size:.6rem; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:4px; padding:0 4px; margin-left:.3rem; cursor:pointer; vertical-align:middle; line-height:1.6; }
+    .excl-badge:hover { background:#fecaca; }
+
+    /* ---- Groups ---- */
+    .group-item {
+      display:flex; align-items:center; gap:.4rem; padding:.35rem .5rem;
+      border-radius:6px; cursor:pointer; font-size:.76rem; font-weight:600;
+      transition:background .1s; border:1px solid transparent;
+    }
+    .group-item:hover { background:#f8f9fb; }
+    .group-item.active { background:#eef0fd; border-color:var(--accent); }
+    .group-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    .group-del { color:#d1d5db; margin-left:auto; cursor:pointer; font-size:.7rem; flex-shrink:0; }
+    .group-del:hover { color:#ef4444; }
+    .group-badge { background:#e5e7eb; color:#6b7280; border-radius:999px; font-size:.65rem; padding:.05em .45em; font-weight:700; }
+
+    /* Group dropdown */
+    #groupDrop {
+      display:none; position:absolute; bottom:calc(100% + 6px); left:0;
+      background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+      padding:.5rem; min-width:220px;
+      box-shadow:0 8px 24px rgba(0,0,0,.15); z-index:200;
+    }
+    #groupDrop.open { display:block; }
+    .gdrop-item { display:flex; align-items:center; gap:.4rem; padding:.3rem .4rem; border-radius:6px; cursor:pointer; font-size:.78rem; font-weight:600; transition:background .1s; }
+    .gdrop-item:hover { background:#f1f5f9; }
+
+    /* Row group indicator */
+    tr.in-group-view td:first-child { border-left:3px solid var(--group-color, #4361ee); }
+
+    /* ---- Selection bar ---- */
+    #selectionBar {
+      display:none; position:sticky; bottom:0; left:0; right:0;
+      background:var(--accent); color:#fff;
+      padding:.5rem 1.25rem; align-items:center; gap:.75rem;
+      font-size:.83rem; font-weight:600; z-index:100; border-top:2px solid var(--accent-dark);
+    }
+    #selectionBar.show { display:flex; }
+    #selectionBar .btn-sel { background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4); color:#fff; border-radius:6px; padding:.25rem .65rem; font-size:.75rem; font-weight:600; cursor:pointer; transition:background .12s; }
+    #selectionBar .btn-sel:hover { background:rgba(255,255,255,.35); }
+    #selectionBar .btn-sel-danger { background:rgba(255,80,80,.25); border-color:rgba(255,120,120,.4); }
+    #selectionBar .btn-sel-danger:hover { background:rgba(255,80,80,.45); }
+
+    /* Spinner */
+    .spinner-overlay {
+      display:none; position:fixed; inset:0; background:rgba(255,255,255,.75);
+      z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:1rem;
+    }
+    .spinner-overlay.show { display:flex; }
+
+    .empty-state { text-align:center; padding:4rem 1rem; color:#9ca3af; }
+    .empty-state i { font-size:3rem; }
+
+    @media(max-width:768px){
+      .layout { flex-direction:column !important; height:auto !important; overflow:visible !important; }
+      .sidebar { width:100%; min-width:unset; overflow-y:visible; border-right:none; border-bottom:1px solid #e5e7eb; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout d-flex" style="height:100vh;overflow:hidden">
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar">
+  <div class="sidebar-inner">
+    <div>
+      <div class="brand"><span class="m">Morganti</span> Trova Clienti<br><span class="sub">Lead generation locale</span></div>
+    </div>
+
+    <form id="searchForm" class="d-flex flex-column gap-2">
+      <div>
+        <label class="form-label-sm">Città / Indirizzo / CAP</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="bi bi-geo-alt-fill text-danger"></i></span>
+          <input type="text" class="form-control" id="location" placeholder="es. Milano, Via Roma 1..." required>
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label-sm">Categoria</label>
+        <select class="form-select form-select-sm" id="category">
+          {% for key, label in categories.items() %}
+          <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label-sm d-flex justify-content-between">
+          Raggio ricerca <span id="radiusLabel" class="text-primary fw-bold">2 km</span>
+        </label>
+        <input type="range" class="form-range" id="radius" min="0.5" max="60" step="0.5" value="2">
+      </div>
+
+      <div class="form-check form-switch mt-1">
+        <input class="form-check-input" type="checkbox" id="checkWebsites" checked>
+        <label class="form-check-label" for="checkWebsites" style="font-size:.78rem">
+          Verifica &amp; cerca siti web
+          <span class="text-muted d-block" style="font-size:.7rem">Controlla OSM + cerca dominio per chi non ce l'ha</span>
+        </label>
+      </div>
+
+      <div class="form-check form-switch mt-1">
+        <input class="form-check-input" type="checkbox" id="proModeToggle" onchange="toggleProMode()">
+        <label class="form-check-label" for="proModeToggle" style="font-size:.78rem">
+          Modalita Lead Pro
+          <span class="text-muted d-block" style="font-size:.7rem">Score priorita &middot; Social detection &middot; CRM note</span>
+        </label>
+      </div>
+
+      <button type="submit" class="search-btn mt-1">
+        <i class="bi bi-search me-1"></i>Cerca aziende
+      </button>
+    </form>
+
+    <!-- Stats -->
+    <div id="statsSection" style="display:none">
+      <hr class="my-1">
+      <div class="d-grid gap-1">
+        <div class="stat-card stat-all active" data-filter="all">
+          <div class="d-flex justify-content-between">
+            <span><i class="bi bi-building me-1"></i>Totale trovati</span>
+            <span id="statTotal">0</span>
+          </div>
+        </div>
+        <div class="stat-card stat-web" data-filter="has_website">
+          <div class="d-flex justify-content-between">
+            <span><i class="bi bi-globe me-1"></i>Con sito web</span>
+            <span id="statWith">0</span>
+          </div>
+        </div>
+        <div class="stat-card stat-noweb" data-filter="no_website">
+          <div class="d-flex justify-content-between">
+            <span><i class="bi bi-exclamation-circle me-1"></i>Senza sito web</span>
+            <span id="statWithout">0</span>
+          </div>
+        </div>
+        <div class="stat-card stat-dead" id="statDeadCard" data-filter="dead_website" style="display:none">
+          <div class="d-flex justify-content-between">
+            <span><i class="bi bi-wifi-off me-1"></i>Sito non raggiungibile</span>
+            <span id="statDead">0</span>
+          </div>
+        </div>
+        <div class="stat-card stat-social" id="statSocialCard" data-filter="social_only" style="display:none">
+          <div class="d-flex justify-content-between">
+            <span><i class="bi bi-person-badge me-1"></i>Solo social (no sito)</span>
+            <span id="statSocial">0</span>
+          </div>
+        </div>
+      </div>
+      <!-- Filtri aggiuntivi (AND con filtro principale) -->
+      <div id="extraFiltersSection" style="margin-top:.5rem">
+        <div style="font-size:.66rem;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">Filtri aggiuntivi</div>
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+          <button class="filter-chip" id="fchip-email"   onclick="toggleExtraFilter('email')"><i class="bi bi-envelope me-1"></i>Con email</button>
+          <button class="filter-chip" id="fchip-noemail" onclick="toggleExtraFilter('noemail')"><i class="bi bi-envelope-slash me-1"></i>Senza email</button>
+          <button class="filter-chip" id="fchip-r4"      onclick="toggleExtraFilter('r4')">&#9733;&#8805;4</button>
+          <button class="filter-chip" id="fchip-r4h"     onclick="toggleExtraFilter('r4h')">&#9733;&#8805;4.5</button>
+          <button class="filter-chip" id="fchip-r5"      onclick="toggleExtraFilter('r5')">&#9733;=5</button>
+          <button class="filter-chip filter-chip-reset" id="fchip-reset" onclick="resetExtraFilters()" style="display:none">&#10005; Reset</button>
+        </div>
+        <div id="extraFilterLabel" style="font-size:.7rem;color:var(--accent);margin-top:.3rem;display:none"></div>
+      </div>
+      <div id="proSortBar" style="display:none;margin-top:.5rem">
+        <div style="font-size:.66rem;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">Ordina per</div>
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+          <button class="sort-quick-btn sq-active" id="sqBtn-score" onclick="setQuickSort('score')">Priorita</button>
+          <button class="sort-quick-btn" id="sqBtn-rating-desc" onclick="setQuickSort('rating','desc')" title="Google rating dal piu alto">G.&#9733; &#8595;</button>
+          <button class="sort-quick-btn" id="sqBtn-rating-asc"  onclick="setQuickSort('rating','asc')"  title="Google rating dal piu basso">G.&#9733; &#8593;</button>
+          <button class="sort-quick-btn" id="sqBtn-ta-desc"     onclick="setQuickSort('ta_rating','desc')" title="TripAdvisor dal piu alto">TA&#9733; &#8595;</button>
+          <button class="sort-quick-btn" id="sqBtn-ta-asc"      onclick="setQuickSort('ta_rating','asc')"  title="TripAdvisor dal piu basso">TA&#9733; &#8593;</button>
+          <button class="sort-quick-btn" id="sqBtn-reviews" onclick="setQuickSort('reviews')">Rec. &#8595;</button>
+          <button class="sort-quick-btn" id="sqBtn-name" onclick="setQuickSort('name')">Nome A&rarr;Z</button>
+        </div>
+      </div>
+      <div class="d-flex gap-1 mt-2">
+        <button class="btn btn-sm btn-outline-secondary flex-fill" id="exportBtn"><i class="bi bi-download me-1"></i>CSV</button>
+        <button class="btn btn-sm btn-outline-danger flex-fill" id="exportNoWebBtn"><i class="bi bi-download me-1"></i>Solo senza sito</button>
+      </div>
+      <button class="btn btn-sm btn-outline-primary w-100 mt-1" id="exportSelBtn" style="display:none"><i class="bi bi-check2-square me-1"></i>Esporta selezionati (<span id="exportSelCount">0</span>)</button>
+    </div>
+
+    <!-- Excluded -->
+    <div id="excludedSection" style="display:none">
+      <hr class="my-1">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span style="font-size:.75rem;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.05em">
+          <i class="bi bi-slash-circle me-1"></i>Esclusi <span id="excludedCount" class="group-badge" style="background:#fee2e2;color:#dc2626">0</span>
+        </span>
+        <div class="d-flex gap-2 align-items-center">
+          <button class="btn btn-link btn-sm p-0 text-muted" onclick="toggleHideExcluded()" id="hideExcludedBtn" style="font-size:.7rem">Nascondi</button>
+          <button class="btn btn-link btn-sm p-0 text-danger" onclick="clearExcluded()" style="font-size:.7rem">Svuota</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Groups -->
+    <div id="groupsSection" style="display:none">
+      <hr class="my-1">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em"><i class="bi bi-folder me-1"></i>Gruppi</span>
+        <button class="btn btn-link btn-sm p-0 text-muted" onclick="clearGroupFilter()" id="clearGroupFilterBtn" title="Mostra tutti" style="display:none;font-size:.7rem">Tutti</button>
+      </div>
+      <div id="groupsList" class="d-flex flex-column gap-1"></div>
+    </div>
+
+    <!-- History -->
+    <div id="historySection" class="flex-fill d-flex flex-column" style="min-height:0">
+      <hr class="my-1">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span style="font-size:.75rem; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.05em">Ricerche salvate</span>
+        <button class="btn btn-link btn-sm p-0 text-muted" id="refreshHistoryBtn" title="Aggiorna"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div id="historyList" class="d-flex flex-column gap-1 overflow-auto" style="max-height:240px"></div>
+    </div>
+
+    <!-- Serper API Key -->
+    <div style="border-top:1px solid #e5e7eb;padding-top:.75rem;margin-top:.25rem">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span style="font-size:.75rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">Impostazioni</span>
+        <button class="btn btn-link btn-sm p-0 text-muted" onclick="toggleSettings()" id="settingsToggle" title="Espandi"><i class="bi bi-gear"></i></button>
+      </div>
+      <div id="settingsPanel" style="display:none">
+        <label class="form-label-sm">Serper.dev API Key <span style="font-size:.65rem;color:#9ca3af">(Google Search)</span></label>
+        <div class="input-group input-group-sm mb-1">
+          <input type="password" class="form-control" id="serperKey" placeholder="Incolla la tua API key...">
+          <button class="btn btn-outline-secondary" onclick="saveSerperKey()" title="Salva"><i class="bi bi-check-lg"></i></button>
+        </div>
+        <div id="serperStatus" style="font-size:.7rem;color:#6b7280"></div>
+        <label class="form-label-sm mt-1">Max chiamate Serper per ricerca</label>
+        <input type="number" class="form-control form-control-sm mb-1" id="serperLimit" value="50" min="1" max="500">
+        <div style="font-size:.67rem;color:#9ca3af;margin-bottom:.4rem">
+          Gratuita su <a href="https://serper.dev" target="_blank">serper.dev</a> — 2.500/mese. I risultati vengono <strong>cachati 30 giorni</strong>: la stessa attività non viene mai ricercata due volte.
+        </div>
+        <button class="btn btn-sm btn-outline-danger w-100" onclick="clearCache()" style="font-size:.75rem">
+          <i class="bi bi-trash me-1"></i>Svuota cache e riparti da zero
+        </button>
+        <div id="cacheStatus" style="font-size:.7rem;color:#6b7280;margin-top:.25rem"></div>
+      </div>
+    </div>
+
+    <div class="text-muted mt-auto pt-2" style="font-size:.65rem">
+      Dati: <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> · Overpass API · Nominatim
+    </div>
+  </div><!-- /sidebar-inner -->
+  </aside>
+
+  <!-- ========== MAIN ========== -->
+  <main class="flex-fill d-flex flex-column" style="min-width:0;overflow-y:auto">
+    <div class="topbar">
+      <span class="fw-semibold text-muted" style="font-size:.825rem" id="searchSummary">
+        Inserisci una località e una categoria per iniziare.
+      </span>
+      <div class="ms-auto d-flex gap-2 align-items-center">
+        <input type="text" class="form-control form-control-sm" id="tableSearch"
+               placeholder="Filtra..." style="width:160px;display:none" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="flex-fill p-3 p-md-4">
+      <div class="empty-state" id="emptyState">
+        <i class="bi bi-map d-block mb-3"></i>
+        <h5 class="fw-semibold text-secondary">Nessuna ricerca ancora</h5>
+        <p class="text-muted" style="font-size:.875rem">Seleziona una zona e una categoria per trovare le aziende locali.<br>
+        Le aziende <span class="text-danger fw-semibold">senza sito web</span> sono i tuoi potenziali clienti.</p>
+      </div>
+
+      <div id="tableSection" style="display:none;overflow-x:auto">
+        <table class="table table-hover mb-0" id="results-table">
+          <thead>
+            <tr>
+              <th class="cb-col"><input type="checkbox" class="row-cb" id="selectAllCb" title="Seleziona/deseleziona tutto" onclick="toggleSelectAll(this)"></th>
+              <th style="width:32px">#</th>
+              <th class="pro-col sort-th text-center" data-sort="score" onclick="thSort(this)" title="Ordina per priorita lead (5=massima)">Score <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sort-th" data-sort="name" onclick="thSort(this)">Nome <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th class="sort-th" data-sort="type" onclick="thSort(this)">Tipo <i class="bi bi-arrow-down-up sort-icon"></i></th>
+              <th>Indirizzo</th>
+              <th>Sito Web</th>
+              <th>Stato</th>
+              <th>Telefono</th>
+              <th>Email</th>
+              <th>Mappa</th>
+              <th class="pro-col">CRM</th>
+              <th>Proposta</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Email Template Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:520px">
+    <div class="modal-content">
+      <div class="modal-header py-2 border-bottom">
+        <h6 class="modal-title fw-bold" id="emailModalTitle" style="font-size:.875rem;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></h6>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body py-2">
+        <label class="form-label-sm">Oggetto</label>
+        <input type="text" class="form-control form-control-sm mb-2" id="emailSubject" readonly style="font-weight:600">
+        <label class="form-label-sm">Testo email <span class="text-muted" style="font-weight:400">(personalizza prima di inviare)</span></label>
+        <textarea class="form-control form-control-sm" id="emailBody" rows="13" style="font-size:.78rem;resize:vertical"></textarea>
+      </div>
+      <div class="modal-footer py-2 border-top d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary me-auto" onclick="copyEmail()"><i class="bi bi-clipboard me-1"></i>Copia tutto</button>
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+        <button class="btn btn-sm btn-primary" onclick="openMailClient()"><i class="bi bi-envelope me-1"></i>Apri client email</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CRM Modal -->
+<div class="modal fade" id="crmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2 border-bottom">
+        <h6 class="modal-title fw-bold" id="crmModalTitle" style="font-size:.875rem;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></h6>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body py-2">
+        <label class="form-label-sm">Stato lead</label>
+        <select class="form-select form-select-sm mb-2" id="crmStatus">
+          <option value="nuovo">Nuovo</option>
+          <option value="contattato">Contattato</option>
+          <option value="trattativa">In trattativa</option>
+          <option value="chiuso">Chiuso</option>
+          <option value="perso">Perso</option>
+        </select>
+        <label class="form-label-sm">Note</label>
+        <textarea class="form-control form-control-sm mb-2" id="crmNote" rows="3"
+          placeholder="Referente, esito chiamata, appunti..." style="resize:vertical"></textarea>
+        <label class="form-label-sm">Prossimo contatto</label>
+        <input type="date" class="form-control form-control-sm" id="crmNextContact">
+      </div>
+      <div class="modal-footer py-2 border-top">
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button class="btn btn-sm btn-primary" onclick="saveCRM()">Salva</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Selection Bar -->
+<div id="selectionBar">
+  <i class="bi bi-check2-square"></i>
+  <span id="selBarCount">0 selezionate</span>
+  <button class="btn-sel" onclick="exportSelectedCSV()"><i class="bi bi-download me-1"></i>Esporta CSV</button>
+  <button class="btn-sel" onclick="copySelectedEmails()" id="selBarEmailBtn"><i class="bi bi-envelope me-1"></i>Copia email</button>
+  <button class="btn-sel btn-sel-danger" onclick="addToExcluded()" title="Aggiungi alla lista esclusi (non contattare)"><i class="bi bi-slash-circle me-1"></i>Escludi</button>
+  <div class="position-relative" id="groupDropWrapper">
+    <button class="btn-sel" onclick="toggleGroupDrop(event)"><i class="bi bi-folder-plus me-1"></i>Raggruppa</button>
+    <div id="groupDrop">
+      <div id="groupDropList"></div>
+      <div id="groupDropSep" style="border-top:1px solid #e5e7eb;margin:.35rem 0"></div>
+      <div style="display:flex;gap:.3rem">
+        <input type="text" id="newGroupInput" placeholder="Nuovo gruppo..." maxlength="40"
+               style="flex:1;font-size:.75rem;padding:.25rem .45rem;border:1px solid #e5e7eb;border-radius:6px;outline:none"
+               onkeydown="if(event.key==='Enter')createGroupFromInput()">
+        <button onclick="createGroupFromInput()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:.25rem .6rem;font-size:.75rem;font-weight:700;cursor:pointer">+</button>
+      </div>
+    </div>
+  </div>
+  <button class="btn-sel btn-sel-danger ms-auto" onclick="clearSelection()"><i class="bi bi-x-lg me-1"></i>Deseleziona tutto</button>
+</div>
+
+<!-- Spinner -->
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner-border text-primary" style="width:3rem;height:3rem" role="status"></div>
+  <div class="fw-semibold text-secondary" id="spinnerMsg">Ricerca in corso...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let allBusinesses = [];
+  let currentFilter = 'all';
+  let wasChecked = false;
+  let extraFilters = { email: null, minRating: null }; // email: null|'yes'|'no', minRating: null|4|4.5|'5exact'
+  let proMode = localStorage.getItem('proMode') === '1';
+  let businessNotes = {};
+  let crmCurrentKey = '';
+  let renderedList  = [];
+  let sortCol = null;
+  let sortDir = 1;
+  let selectedSet = new Set(); // chiavi delle attività selezionate
+  let searchCity  = '';
+
+  // Init pro mode on load
+  if (proMode) {
+    document.getElementById('proModeToggle').checked = true;
+    document.body.classList.add('pro-mode');
+  }
+
+  // Settings
+  function toggleSettings() {
+    const p = document.getElementById('settingsPanel');
+    p.style.display = p.style.display === 'none' ? '' : 'none';
+  }
+  async function clearCache() {
+    if (!confirm('Svuotare la cache? La prossima ricerca userà token Serper per tutte le attività.')) return;
+    await fetch('/api/cache', {method: 'DELETE'});
+    const st = document.getElementById('cacheStatus');
+    st.textContent = '✓ Cache svuotata';
+    st.style.color = '#16a34a';
+    setTimeout(() => { st.textContent = ''; }, 3000);
+  }
+
+  async function saveSerperKey() {
+    const key   = document.getElementById('serperKey').value.trim();
+    const limit = parseInt(document.getElementById('serperLimit').value) || 50;
+    await fetch('/api/config', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({serper_key: key, serper_limit: limit})
+    });
+    const st = document.getElementById('serperStatus');
+    st.textContent = key ? `✓ Salvato — max ${limit} chiamate/ricerca` : 'Key rimossa';
+    st.style.color = key ? '#16a34a' : '#6b7280';
+  }
+  async function loadSettings() {
+    try {
+      const r = await fetch('/api/config');
+      const d = await r.json();
+      if (d.serper_key) {
+        document.getElementById('serperKey').value = d.serper_key;
+        document.getElementById('serperLimit').value = d.serper_limit || 50;
+        document.getElementById('serperStatus').textContent = `✓ API key configurata — max ${d.serper_limit||50} chiamate/ricerca`;
+        document.getElementById('serperStatus').style.color = '#16a34a';
+      }
+    } catch(e) {}
+  }
+  loadSettings();
+
+  // Radius
+  document.getElementById('radius').addEventListener('input', e => {
+    document.getElementById('radiusLabel').textContent = e.target.value + ' km';
+  });
+
+  // Stat filters
+  document.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      currentFilter = card.dataset.filter;
+      renderTable(filterBusinesses(currentFilter));
+    });
+  });
+
+  // Table search
+  document.getElementById('tableSearch').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    const base = filterBusinesses(currentFilter);
+    renderTable(q ? base.filter(b =>
+      b.name.toLowerCase().includes(q) ||
+      (b.address||'').toLowerCase().includes(q) ||
+      (b.type||'').toLowerCase().includes(q)
+    ) : base, false);
+  });
+
+  // Search form
+  document.getElementById('searchForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    await doSearch();
+  });
+
+  async function doSearch() {
+    const location = document.getElementById('location').value.trim();
+    const category = document.getElementById('category').value;
+    const radius   = parseFloat(document.getElementById('radius').value);
+    const checkWebsites = document.getElementById('checkWebsites').checked;
+    if (!location) return;
+
+    showSpinner(checkWebsites ? 'Ricerca in corso (verifica siti attiva, ci vorrà un po\')...' : 'Ricerca in corso...');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15 * 60 * 1000); // 15 minuti
+    try {
+      const res = await fetch('/api/search', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({location, category, radius, check_websites: checkWebsites}),
+        signal: controller.signal
+      });
+      const data = await res.json();
+      if (!res.ok) { alert('Errore: ' + (data.error||'sconosciuto')); return; }
+      loadResults(data);
+      loadHistory();
+    } catch(err) {
+      if (err.name === 'AbortError') {
+        alert('La ricerca ha impiegato troppo tempo (>15 min) ed è stata interrotta. Prova a ridurre il raggio o disattiva la verifica siti.');
+      } else {
+        alert('Errore di rete: ' + err.message);
+      }
+    } finally {
+      clearTimeout(timer);
+      hideSpinner();
+    }
+  }
+
+  function loadResults(data) {
+    allBusinesses = data.businesses || [];
+    wasChecked = data.checked || false;
+    currentFilter = 'all';
+    // reset extra filters state + UI chips (no renderTable yet)
+    extraFilters = { email: null, minRating: null };
+    ['email','noemail','r4','r4h','r5'].forEach(k => { const el = document.getElementById('fchip-'+k); if(el) el.classList.remove('active'); });
+    const _freset = document.getElementById('fchip-reset'); if(_freset) _freset.style.display = 'none';
+    const _flbl = document.getElementById('extraFilterLabel'); if(_flbl) _flbl.style.display = 'none';
+
+    document.getElementById('statTotal').textContent   = data.total;
+    document.getElementById('statWith').textContent    = data.with_website;
+    document.getElementById('statWithout').textContent = data.without_website;
+
+    const deadCount = wasChecked
+      ? allBusinesses.filter(b => b.website && (b.website_status === 'error' || b.website_status === 'unreachable')).length
+      : 0;
+    document.getElementById('statDead').textContent = deadCount;
+    document.getElementById('statDeadCard').style.display = wasChecked && deadCount > 0 ? '' : 'none';
+
+    const socialCount = allBusinesses.filter(b => detectSocial(b.website)).length;
+    document.getElementById('statSocial').textContent = socialCount;
+    document.getElementById('statSocialCard').style.display = proMode && socialCount > 0 ? '' : 'none';
+    document.getElementById('proSortBar').style.display = proMode ? '' : 'none';
+
+    const locName = data.location ? data.location.display_name : '';
+    searchCity = locName.split(',')[0].trim();
+    const locShort = locName.split(',').slice(0,2).join(',');
+    const catSel  = document.getElementById('category');
+    const catLabel = catSel.options[catSel.selectedIndex]?.text || '';
+    document.getElementById('searchSummary').textContent =
+      `${data.total} risultati · ${catLabel} · ${data.radius_km} km`;
+    document.getElementById('searchSummary').title = `Posizione trovata: ${locName}`;
+
+    document.getElementById('statsSection').style.display = '';
+    document.getElementById('tableSearch').style.display  = '';
+    document.getElementById('emptyState').style.display   = 'none';
+    document.getElementById('tableSection').style.display = '';
+
+    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+    document.querySelector('[data-filter="all"]').classList.add('active');
+    renderTable(allBusinesses);
+  }
+
+  function filterBusinesses(filter) {
+    let list;
+    switch(filter) {
+      case 'has_website':  list = allBusinesses.filter(b => b.website); break;
+      case 'no_website':   list = allBusinesses.filter(b => !b.website); break;
+      case 'dead_website': list = allBusinesses.filter(b => b.website && (b.website_status==='error'||b.website_status==='unreachable')); break;
+      case 'social_only':  list = allBusinesses.filter(b => detectSocial(b.website)); break;
+      default:             list = allBusinesses;
+    }
+    if (activeGroupFilter && groups[activeGroupFilter]) {
+      const gKeys = new Set(groups[activeGroupFilter].keys);
+      list = list.filter(b => gKeys.has(nameKey(b.name)));
+    }
+    if (hideExcluded) list = list.filter(b => !excludedSet.has(nameKey(b.name)));
+    // Extra AND-filters
+    if (extraFilters.email === 'yes') list = list.filter(b => b.email);
+    if (extraFilters.email === 'no')  list = list.filter(b => !b.email);
+    if (extraFilters.minRating === '5exact') list = list.filter(b => b.rating != null && b.rating === 5);
+    else if (extraFilters.minRating != null) list = list.filter(b => b.rating != null && b.rating >= extraFilters.minRating);
+    return list;
+  }
+
+  function toggleExtraFilter(key) {
+    if (key === 'email' || key === 'noemail') {
+      const val = key === 'email' ? 'yes' : 'no';
+      extraFilters.email = extraFilters.email === val ? null : val;
+      document.getElementById('fchip-email').classList.toggle('active', extraFilters.email === 'yes');
+      document.getElementById('fchip-noemail').classList.toggle('active', extraFilters.email === 'no');
+    } else {
+      const map = { r4: 4, r4h: 4.5, r5: '5exact' };
+      const val = map[key];
+      extraFilters.minRating = extraFilters.minRating === val ? null : val;
+      ['r4','r4h','r5'].forEach(k => document.getElementById('fchip-'+k).classList.toggle('active', extraFilters.minRating === map[k]));
+    }
+    const hasActive = extraFilters.email !== null || extraFilters.minRating !== null;
+    document.getElementById('fchip-reset').style.display = hasActive ? '' : 'none';
+    _updateExtraFilterLabel();
+    renderTable(filterBusinesses(currentFilter));
+  }
+
+  function resetExtraFilters() {
+    extraFilters = { email: null, minRating: null };
+    ['email','noemail','r4','r4h','r5'].forEach(k => document.getElementById('fchip-'+k).classList.remove('active'));
+    document.getElementById('fchip-reset').style.display = 'none';
+    document.getElementById('extraFilterLabel').style.display = 'none';
+    renderTable(filterBusinesses(currentFilter));
+  }
+
+  function _updateExtraFilterLabel() {
+    const parts = [];
+    if (extraFilters.email === 'yes') parts.push('con email');
+    if (extraFilters.email === 'no')  parts.push('senza email');
+    if (extraFilters.minRating === 4)       parts.push('★≥4');
+    if (extraFilters.minRating === 4.5)     parts.push('★≥4.5');
+    if (extraFilters.minRating === '5exact') parts.push('★=5');
+    const lbl = document.getElementById('extraFilterLabel');
+    if (parts.length) { lbl.textContent = 'Attivi: ' + parts.join(' + '); lbl.style.display = ''; }
+    else lbl.style.display = 'none';
+  }
+
+  function wsIcon(b) {
+    if (!wasChecked) return '<span class="text-muted" style="font-size:.72rem">—</span>';
+    if (!b.website) return '<span class="ws-none" style="font-size:.72rem"><i class="bi bi-x-circle"></i></span>';
+    switch(b.website_status) {
+      case 'ok':          return '<span class="ws-ok"><i class="bi bi-check-circle-fill"></i> Online</span>';
+      case 'error':       return `<span class="ws-error"><i class="bi bi-exclamation-circle-fill"></i> ${b.website_code||'Err'}</span>`;
+      case 'unreachable': return '<span class="ws-unreachable"><i class="bi bi-wifi-off"></i> Off</span>';
+      default:            return '<span class="text-muted">—</span>';
+    }
+  }
+
+  function renderTable(list, resetSearch = true) {
+    if (resetSearch) document.getElementById('tableSearch').value = '';
+    const sorted = sortList(list);
+    renderedList  = sorted;
+    const tbody   = document.getElementById('resultsBody');
+    if (!sorted.length) {
+      tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>Nessun risultato trovato.<br><small>Prova a cercare per <strong>città o comune</strong> (es. "Cascina", "Pisa") invece di una via specifica.</small></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = sorted.map((b, i) => {
+      const noSite = !b.website;
+      const social  = detectSocial(b.website);
+      const sourceBadge = b.website_source === 'google'
+        ? `<span title="Trovato tramite Google (Serper.dev)" style="font-size:.63rem;background:#e8f0fe;color:#1a73e8;border:1px solid #4285f4;border-radius:3px;padding:1px 4px;margin-left:.3rem"><i class="bi bi-google"></i> Google</span>`
+        : '';
+
+      let websiteCell;
+      if (noSite) {
+        websiteCell = `<span class="text-danger fw-bold" style="font-size:.78rem"><i class="bi bi-exclamation-triangle me-1"></i>Nessun sito</span>`;
+      } else if (social) {
+        const sb = social === 'facebook'
+          ? `<span class="social-fb"><i class="bi bi-facebook"></i> Facebook</span>`
+          : social === 'instagram'
+            ? `<span class="social-ig"><i class="bi bi-instagram"></i> Instagram</span>`
+            : `<span class="social-generic"><i class="bi bi-share"></i> ${social.charAt(0).toUpperCase()+social.slice(1)}</span>`;
+        websiteCell = `<a href="${escHtml(normUrl(b.website))}" target="_blank" rel="noopener">${sb}</a>${sourceBadge}`;
+      } else {
+        // Quality badges (pro mode, sito reale presente)
+        let qBadges = '';
+        if (proMode) {
+          const qb = [];
+          if (b.site_platform)                                 qb.push(`<span class="site-badge sbadge-platform">${escHtml(b.site_platform)}</span>`);
+          if (b.site_copyright_year && b.site_copyright_year < 2022) qb.push(`<span class="site-badge sbadge-old">&copy;${b.site_copyright_year}</span>`);
+          if (b.site_mobile_ok === false)                      qb.push(`<span class="site-badge sbadge-nomobile"><i class="bi bi-phone-landscape"></i> No mobile</span>`);
+          if (qb.length) qBadges = `<div style="margin-top:3px">${qb.join('')}</div>`;
+        }
+        websiteCell = `<a href="${escHtml(normUrl(b.website))}" target="_blank" rel="noopener" class="text-primary" style="font-size:.75rem;word-break:break-all">${escHtml(b.website)}</a>${sourceBadge}${qBadges}`;
+      }
+
+      const TYPE_IT = {
+        restaurant:'ristorante', fast_food:'fast food', pizza:'pizzeria', ice_cream:'gelateria',
+        bakery:'panetteria', pastry:'pasticceria', bar:'bar', cafe:'caffè', pub:'pub',
+        coffee:'caffè', biergarten:'birreria', hotel:'hotel', guest_house:'b&b', hostel:'ostello',
+        bed_and_breakfast:'b&b', motel:'motel', chalet:'chalet', hairdresser:'parrucchiere',
+        beauty:'centro estetico', pharmacy:'farmacia', doctors:'medico', dentist:'dentista',
+        fitness_centre:'palestra', estate_agent:'agenzia immobiliare', lawyer:'avvocato',
+        notary:'notaio', accountant:'commercialista', tax_advisor:'consulente fiscale',
+        car_repair:'officina', clothes:'abbigliamento', shoes:'negozio scarpe',
+        electronics:'elettronica', mobile_phone:'negozio telefonia',
+        furniture:'arredamento', interior_decoration:'interior design',
+        supermarket:'supermercato', convenience:'alimentari'
+      };
+      const typePrefix = TYPE_IT[(b.type||'').toLowerCase()] || b.type || '';
+      const addrCity = (b.address || '').split(',').pop().trim();
+      const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(((typePrefix ? typePrefix + ' ' : '') + b.name + ' ' + (addrCity || searchCity)).trim())}`;
+      const googleMapsUrl = (b.lat && b.lon)
+        ? `https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lon}`
+        : `https://www.google.com/maps/search/${encodeURIComponent((b.name + ' ' + (b.address || '')).trim())}`;
+      const TA_TYPES = new Set(['restaurant','fast_food','pizza','ice_cream','bakery','pastry','bar','cafe','pub','coffee','biergarten','hotel','guest_house','hostel','bed_and_breakfast','motel','chalet']);
+      const taCity   = b.address ? b.address.split(',').pop().trim() : '';
+      const taLink   = TA_TYPES.has((b.type||'').toLowerCase())
+        ? `<a href="https://www.tripadvisor.it/Search?q=${encodeURIComponent(b.name + (taCity ? ' ' + taCity : ''))}" target="_blank" class="btn btn-sm py-0 px-1" style="font-size:.72rem;background:#00aa6c;color:#fff;border:none" title="Cerca su TripAdvisor"><i class="bi bi-star-half"></i></a>`
+        : '';
+      const mapLink = `<div style="display:flex;gap:.25rem;flex-wrap:wrap">
+        ${(b.lat && b.lon) ? `<a href="https://www.openstreetmap.org/?mlat=${b.lat}&mlon=${b.lon}&zoom=18" target="_blank" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:.72rem" title="OpenStreetMap"><i class="bi bi-map"></i></a>` : ''}
+        <a href="${googleUrl}" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-1" style="font-size:.72rem" title="Cerca su Google"><i class="bi bi-google"></i></a>
+        <a href="${googleMapsUrl}" target="_blank" class="btn btn-sm py-0 px-1" style="font-size:.72rem;background:#34a853;color:#fff;border:none" title="Google Maps"><i class="bi bi-geo-alt-fill"></i></a>
+        ${taLink}
+      </div>`;
+
+      const emailBtn   = proMode ? `<button class="btn-email" onclick="openEmailTemplate(${i})" title="Genera template email outreach"><i class="bi bi-envelope"></i></button>` : '';
+      const proposalBtn = `<button class="btn-proposta ${noSite?'priority':''}" onclick="openProposal(${i})" title="Crea proposta sito web">
+        <i class="bi bi-layout-text-window me-1"></i>${noSite ? 'Crea Proposta' : 'Proposta'}
+      </button>`;
+
+      const key = nameKey(b.name);
+      const isSel = selectedSet.has(key);
+      const isExcl = excludedSet.has(key);
+      const inGroup = activeGroupFilter && groups[activeGroupFilter]?.keys.includes(key);
+      const groupColor = activeGroupFilter ? (groups[activeGroupFilter]?.color || '') : '';
+      const exclBadge = isExcl ? `<span class="excl-badge" onclick="removeFromExcluded('${escHtml(key)}')" title="Rimuovi da esclusi">✕ escluso</span>` : '';
+      return `<tr class="${isSel?'row-selected':''} ${isExcl?'row-excluded':''} ${inGroup?'in-group-view':''}" data-key="${escHtml(key)}" style="${inGroup?`--group-color:${groupColor}`:''}">
+        <td class="cb-col"><input type="checkbox" class="row-cb" ${isSel?'checked':''} onchange="toggleRowSelect(this,'${escHtml(key)}')" onclick="event.stopPropagation()"></td>
+        <td class="text-muted" style="font-size:.75rem">${i+1}</td>
+        <td class="pro-col text-center">${renderScore(b)}</td>
+        <td class="fw-semibold name-col">${escHtml(b.name)}${exclBadge}</td>
+        <td>${b.type?`<span class="badge-type">${escHtml(b.type)}</span>`:'—'}</td>
+        <td style="font-size:.75rem;color:#6b7280;max-width:150px">${escHtml(b.address||'—')}</td>
+        <td style="max-width:160px">${websiteCell}</td>
+        <td style="font-size:.75rem">${wsIcon(b)}</td>
+        <td style="font-size:.75rem">${b.phone?`<a href="tel:${escHtml(b.phone)}">${escHtml(b.phone)}</a>`:'—'}</td>
+        <td style="font-size:.75rem">${b.email?`<a href="mailto:${escHtml(b.email)}">${escHtml(b.email)}</a>`:'—'}</td>
+        <td>${mapLink}</td>
+        <td class="pro-col">${renderCRM(b, key)}</td>
+        <td style="white-space:nowrap">${emailBtn}${proposalBtn}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function openProposal(idx) {
+    const b = renderedList[idx];
+    if (!b) return;
+    const params = new URLSearchParams({
+      name: b.name, type: b.type||'', address: b.address||'',
+      phone: b.phone||'', email: b.email||'',
+      lat: b.lat||'', lon: b.lon||''
+    });
+    window.open('/proposal?' + params.toString(), '_blank');
+  }
+
+  // ---- History ----
+  async function loadHistory() {
+    try {
+      const res = await fetch('/api/searches');
+      const data = await res.json();
+      const container = document.getElementById('historyList');
+      if (!data.length) {
+        container.innerHTML = '<span class="text-muted" style="font-size:.72rem">Nessuna ricerca salvata</span>';
+        return;
+      }
+      container.innerHTML = data.map(s => {
+        const date = new Date(s.created_at).toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+        const checkedBadge = s.has_check
+          ? `<span style="font-size:.62rem;background:#d1fae5;color:#065f46;border-radius:3px;padding:1px 4px">✓ siti</span>`
+          : '';
+        return `<div class="history-item d-flex justify-content-between align-items-start" data-id="${s.id}">
+          <div onclick="reloadSearch(${s.id})" class="flex-fill" style="min-width:0">
+            <div class="h-name text-truncate">${escHtml(s.location)}</div>
+            <div class="h-meta d-flex gap-1 align-items-center flex-wrap">${escHtml(s.category_label||'')} · ${s.radius_km}km · ${s.result_count} ris. ${checkedBadge}</div>
+            <div class="h-meta">${date}</div>
+          </div>
+          <i class="bi bi-x-lg history-del ms-2 mt-1" onclick="deleteSearch(event,${s.id})"></i>
+        </div>`;
+      }).join('');
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  async function reloadSearch(id) {
+    showSpinner('Caricamento ricerca salvata...');
+    try {
+      const res = await fetch(`/api/searches/${id}`);
+      const data = await res.json();
+      if (!res.ok) { alert('Errore: ' + data.error); return; }
+      data.location = { display_name: data.display_name || data.location };
+      loadResults(data);
+      // Ripristina form
+      document.getElementById('location').value = data.location_input || data.location || '';
+      document.getElementById('radius').value = data.radius_km || 2;
+      document.getElementById('radiusLabel').textContent = (data.radius_km || 2) + ' km';
+      const catSel = document.getElementById('category');
+      if (data.category) {
+        for (let opt of catSel.options) { if (opt.value === data.category) { opt.selected = true; break; } }
+      }
+      // Mostra badge "dati dalla cache"
+      const sum = document.getElementById('searchSummary');
+      sum.innerHTML = sum.textContent + ' &nbsp;<span style="font-size:.7rem;background:#fef3c7;color:#92400e;border-radius:3px;padding:1px 6px">📂 dati salvati · nessun token usato</span>';
+    } catch(e) {
+      alert('Errore caricamento: ' + e.message);
+    } finally {
+      hideSpinner();
+    }
+  }
+
+  async function deleteSearch(e, id) {
+    e.stopPropagation();
+    if (!confirm('Eliminare questa ricerca?')) return;
+    await fetch(`/api/searches/${id}`, {method:'DELETE'});
+    loadHistory();
+  }
+
+  document.getElementById('refreshHistoryBtn').addEventListener('click', loadHistory);
+
+  // ---- Selection ----
+  function toggleRowSelect(cb, key) {
+    const row = cb.closest('tr');
+    if (cb.checked) {
+      selectedSet.add(key);
+      row.classList.add('row-selected');
+    } else {
+      selectedSet.delete(key);
+      row.classList.remove('row-selected');
+    }
+    updateSelectionUI();
+  }
+
+  function toggleSelectAll(masterCb) {
+    const visibleKeys = renderedList.map(b => nameKey(b.name));
+    if (masterCb.checked) {
+      visibleKeys.forEach(k => selectedSet.add(k));
+    } else {
+      visibleKeys.forEach(k => selectedSet.delete(k));
+    }
+    updateSelectionUI();
+    // aggiorna checkbox visibili senza re-render completo
+    document.querySelectorAll('#resultsBody .row-cb').forEach((cb, i) => {
+      cb.checked = masterCb.checked;
+      cb.closest('tr').classList.toggle('row-selected', masterCb.checked);
+    });
+  }
+
+  function clearSelection() {
+    selectedSet.clear();
+    updateSelectionUI();
+    document.querySelectorAll('#resultsBody .row-cb').forEach(cb => {
+      cb.checked = false;
+      cb.closest('tr').classList.remove('row-selected');
+    });
+    const masterCb = document.getElementById('selectAllCb');
+    if (masterCb) masterCb.checked = false;
+  }
+
+  // ---- Groups ----
+  const GROUP_COLORS = ['#4361ee','#ef4444','#16a34a','#d97706','#8b5cf6','#ec4899','#0891b2','#ea580c','#84cc16','#f43f5e'];
+  // ---- Exclusion list ----
+  let excludedSet = new Set();
+  let hideExcluded = false;
+
+  function loadExcluded() {
+    try { excludedSet = new Set(JSON.parse(localStorage.getItem('mtc_excluded') || '[]')); } catch(e) { excludedSet = new Set(); }
+    renderExcludedSidebar();
+  }
+
+  function saveExcluded() {
+    localStorage.setItem('mtc_excluded', JSON.stringify([...excludedSet]));
+    renderExcludedSidebar();
+  }
+
+  function addToExcluded() {
+    if (!selectedSet.size) return;
+    selectedSet.forEach(k => excludedSet.add(k));
+    saveExcluded();
+    renderTable(filterBusinesses(currentFilter), false);
+  }
+
+  function removeFromExcluded(key) {
+    excludedSet.delete(key);
+    saveExcluded();
+    renderTable(filterBusinesses(currentFilter), false);
+  }
+
+  function clearExcluded() {
+    if (!confirm(`Svuotare la lista esclusi (${excludedSet.size} attività)?`)) return;
+    excludedSet.clear();
+    saveExcluded();
+    renderTable(filterBusinesses(currentFilter), false);
+  }
+
+  function toggleHideExcluded() {
+    hideExcluded = !hideExcluded;
+    document.getElementById('hideExcludedBtn').textContent = hideExcluded ? 'Mostra' : 'Nascondi';
+    renderTable(filterBusinesses(currentFilter), false);
+  }
+
+  function renderExcludedSidebar() {
+    const count = excludedSet.size;
+    document.getElementById('excludedSection').style.display = count > 0 ? '' : 'none';
+    document.getElementById('excludedCount').textContent = count;
+  }
+
+  let groups = {}; // { name: { color, keys: [] } }
+  let activeGroupFilter = null; // nome del gruppo attivo come filtro
+
+  function loadGroups() {
+    try { groups = JSON.parse(localStorage.getItem('mtc_groups') || '{}'); } catch(e) { groups = {}; }
+    renderGroupsSidebar();
+  }
+
+  function saveGroups() {
+    localStorage.setItem('mtc_groups', JSON.stringify(groups));
+    renderGroupsSidebar();
+  }
+
+  function nextGroupColor() {
+    const used = Object.values(groups).map(g => g.color);
+    return GROUP_COLORS.find(c => !used.includes(c)) || GROUP_COLORS[Object.keys(groups).length % GROUP_COLORS.length];
+  }
+
+  function renderGroupsSidebar() {
+    const names = Object.keys(groups);
+    const sec = document.getElementById('groupsSection');
+    sec.style.display = names.length ? '' : 'none';
+
+    const list = document.getElementById('groupsList');
+    list.innerHTML = names.map(name => {
+      const g = groups[name];
+      const count = g.keys.length;
+      const isActive = activeGroupFilter === name;
+      return `<div class="group-item ${isActive?'active':''}" onclick="filterByGroup('${escHtml(name)}')">
+        <span class="group-dot" style="background:${g.color}"></span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(name)}</span>
+        <span class="group-badge">${count}</span>
+        <i class="bi bi-trash3 group-del" onclick="deleteGroup(event,'${escHtml(name)}')" title="Elimina gruppo"></i>
+      </div>`;
+    }).join('');
+
+    const clearBtn = document.getElementById('clearGroupFilterBtn');
+    if (clearBtn) clearBtn.style.display = activeGroupFilter ? '' : 'none';
+  }
+
+  function filterByGroup(name) {
+    if (activeGroupFilter === name) { clearGroupFilter(); return; }
+    activeGroupFilter = name;
+    currentFilter = 'all';
+    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+    document.querySelector('[data-filter="all"]').classList.add('active');
+    renderGroupsSidebar();
+    renderTable(filterBusinesses('all'), false);
+  }
+
+  function clearGroupFilter() {
+    activeGroupFilter = null;
+    renderGroupsSidebar();
+    renderTable(filterBusinesses(currentFilter), false);
+  }
+
+  function addSelectedToGroup(name) {
+    if (!groups[name]) return;
+    selectedSet.forEach(k => {
+      if (!groups[name].keys.includes(k)) groups[name].keys.push(k);
+    });
+    saveGroups();
+    closeGroupDrop();
+    // feedback visivo
+    const bar = document.getElementById('selectionBar');
+    const old = bar.style.background;
+    bar.style.background = '#16a34a';
+    setTimeout(() => { bar.style.background = ''; }, 700);
+  }
+
+  function createGroupFromInput() {
+    const inp = document.getElementById('newGroupInput');
+    const name = inp.value.trim();
+    if (!name) return;
+    if (!groups[name]) groups[name] = { color: nextGroupColor(), keys: [] };
+    addSelectedToGroup(name);
+    inp.value = '';
+  }
+
+  function deleteGroup(e, name) {
+    e.stopPropagation();
+    if (!confirm(`Eliminare il gruppo "${name}"?`)) return;
+    delete groups[name];
+    if (activeGroupFilter === name) activeGroupFilter = null;
+    saveGroups();
+    if (activeGroupFilter === null) renderTable(filterBusinesses(currentFilter), false);
+  }
+
+  function toggleGroupDrop(e) {
+    e.stopPropagation();
+    const drop = document.getElementById('groupDrop');
+    const isOpen = drop.classList.contains('open');
+    if (isOpen) { closeGroupDrop(); return; }
+    // popola lista gruppi nel dropdown
+    const dl = document.getElementById('groupDropList');
+    const names = Object.keys(groups);
+    const sep = document.getElementById('groupDropSep');
+    if (names.length) {
+      sep.style.display = '';
+      dl.innerHTML = names.map(name => {
+        const g = groups[name];
+        return `<div class="gdrop-item" onclick="addSelectedToGroup('${escHtml(name)}')">
+          <span class="group-dot" style="background:${g.color}"></span>
+          <span style="flex:1">${escHtml(name)}</span>
+          <span class="group-badge">${g.keys.length}</span>
+        </div>`;
+      }).join('');
+    } else {
+      sep.style.display = 'none';
+      dl.innerHTML = '<div style="font-size:.72rem;color:#9ca3af;padding:.2rem .4rem">Nessun gruppo ancora</div>';
+    }
+    drop.classList.add('open');
+    setTimeout(() => document.addEventListener('click', outsideGroupDrop), 0);
+  }
+
+  function outsideGroupDrop(e) {
+    if (!document.getElementById('groupDropWrapper').contains(e.target)) {
+      closeGroupDrop();
+    }
+  }
+
+  function closeGroupDrop() {
+    document.getElementById('groupDrop').classList.remove('open');
+    document.removeEventListener('click', outsideGroupDrop);
+  }
+
+  function updateSelectionUI() {
+    const count = selectedSet.size;
+    const bar = document.getElementById('selectionBar');
+    bar.classList.toggle('show', count > 0);
+    document.getElementById('selBarCount').textContent = count + (count === 1 ? ' selezionata' : ' selezionate');
+
+    const selBtn = document.getElementById('exportSelBtn');
+    if (selBtn) {
+      selBtn.style.display = count > 0 ? '' : 'none';
+      document.getElementById('exportSelCount').textContent = count;
+    }
+
+    // aggiorna il master checkbox
+    const masterCb = document.getElementById('selectAllCb');
+    if (masterCb && renderedList.length) {
+      const visKeys = renderedList.map(b => nameKey(b.name));
+      const allSel = visKeys.every(k => selectedSet.has(k));
+      const someSel = visKeys.some(k => selectedSet.has(k));
+      masterCb.checked = allSel;
+      masterCb.indeterminate = !allSel && someSel;
+    }
+
+    // aggiorna se ci sono email tra i selezionati
+    const selBusinesses = allBusinesses.filter(b => selectedSet.has(nameKey(b.name)));
+    const hasEmails = selBusinesses.some(b => b.email);
+    const emailBtn = document.getElementById('selBarEmailBtn');
+    if (emailBtn) emailBtn.style.display = hasEmails ? '' : 'none';
+  }
+
+  function exportSelectedCSV() {
+    const list = allBusinesses.filter(b => selectedSet.has(nameKey(b.name)));
+    if (!list.length) return;
+    exportCSV(list, 'selezionate');
+  }
+
+  function copySelectedEmails() {
+    const list = allBusinesses.filter(b => selectedSet.has(nameKey(b.name)) && b.email);
+    const emails = list.map(b => b.email).join('; ');
+    navigator.clipboard.writeText(emails).then(() => {
+      const btn = document.getElementById('selBarEmailBtn');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Copiate!';
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    });
+  }
+
+  // ---- Export CSV ----
+  document.getElementById('exportBtn').addEventListener('click', () => exportCSV(filterBusinesses(currentFilter), 'aziende'));
+  document.getElementById('exportNoWebBtn').addEventListener('click', () => exportCSV(allBusinesses.filter(b => !b.website), 'senza_sito'));
+  document.getElementById('exportSelBtn').addEventListener('click', exportSelectedCSV);
+
+  function exportCSV(list, filename) {
+    const crmLabels = {nuovo:'Nuovo', contattato:'Contattato', trattativa:'Trattativa', chiuso:'Chiuso', perso:'Perso'};
+    const headers = ['Nome','Tipo','Indirizzo','Sito Web','Stato Sito','Telefono','Email','Priorita','Stato CRM','Nota CRM','Prossimo Contatto','Lat','Lon'];
+    const rows = list.map(b => {
+      const note = businessNotes[nameKey(b.name)];
+      return [
+        b.name, b.type, b.address, b.website,
+        wasChecked ? (b.website_status||'') : '',
+        b.phone, b.email,
+        computeLeadScore(b).toFixed(1),
+        crmLabels[note ? note.status : 'nuovo'] || 'Nuovo',
+        note ? note.note : '',
+        note ? note.next_contact : '',
+        b.lat, b.lon
+      ];
+    });
+    const csv = [headers,...rows].map(r => r.map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename + '_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+  }
+
+  // ---- Utils ----
+  function normUrl(url) { return url && !url.startsWith('http') ? 'https://'+url : (url||'#'); }
+  function escHtml(s) {
+    return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function showSpinner(msg) {
+    document.getElementById('spinnerMsg').textContent = msg;
+    document.getElementById('spinnerOverlay').classList.add('show');
+  }
+  function hideSpinner() { document.getElementById('spinnerOverlay').classList.remove('show'); }
+
+  // ---- Sort ----
+  function thSort(th) {
+    const col = th.dataset.sort;
+    if (sortCol === col) { sortDir *= -1; }
+    else { sortCol = col; sortDir = col === 'score' ? -1 : 1; }
+    updateSortIndicators();
+    renderTable(filterBusinesses(currentFilter), false);
+  }
+
+  function updateSortIndicators() {
+    document.querySelectorAll('.sort-th').forEach(th => {
+      th.classList.remove('sorted');
+      const ic = th.querySelector('.sort-icon');
+      if (ic) { ic.className = 'bi bi-arrow-down-up sort-icon'; }
+    });
+    if (!sortCol) return;
+    const active = document.querySelector(`.sort-th[data-sort="${sortCol}"]`);
+    if (active) {
+      active.classList.add('sorted');
+      const ic = active.querySelector('.sort-icon');
+      if (ic) ic.className = `bi bi-arrow-${sortDir === 1 ? 'up' : 'down'} sort-icon`;
+    }
+  }
+
+  function sortList(list) {
+    if (!sortCol) return list;
+    return [...list].sort((a, b) => {
+      // Campi numerici: chi non ha valore va SEMPRE in fondo (sia ASC che DESC)
+      if (sortCol === 'rating' || sortCol === 'ta_rating' || sortCol === 'review_count') {
+        const va = a[sortCol]; const vb = b[sortCol];
+        const aN = va == null;  const bN = vb == null;
+        if (aN && bN) return 0;
+        if (aN) return 1;   // a senza valore → va dopo
+        if (bN) return -1;  // b senza valore → va dopo
+        return (va < vb ? -1 : va > vb ? 1 : 0) * sortDir;
+      }
+      let va, vb;
+      if      (sortCol === 'score') { va = computeLeadScore(a); vb = computeLeadScore(b); }
+      else if (sortCol === 'name')  { va = (a.name||'').toLowerCase(); vb = (b.name||'').toLowerCase(); }
+      else if (sortCol === 'type')  { va = (a.type||'').toLowerCase(); vb = (b.type||'').toLowerCase(); }
+      else { return 0; }
+      if (va === vb) return 0;
+      return (va < vb ? -1 : 1) * sortDir;
+    });
+  }
+
+  function setQuickSort(key, dir) {
+    if      (key === 'score')     { sortCol = 'score';        sortDir = -1; }
+    else if (key === 'reviews')   { sortCol = 'review_count'; sortDir = -1; }
+    else if (key === 'name')      { sortCol = 'name';         sortDir =  1; }
+    else if (key === 'rating')    { sortCol = 'rating';       sortDir = dir === 'asc' ? 1 : -1; }
+    else if (key === 'ta_rating') { sortCol = 'ta_rating';    sortDir = dir === 'asc' ? 1 : -1; }
+    document.querySelectorAll('.sort-quick-btn').forEach(b => b.classList.remove('sq-active'));
+    const btnId = key === 'rating'    ? `sqBtn-rating-${dir||'desc'}`
+                : key === 'ta_rating' ? `sqBtn-ta-${dir||'desc'}`
+                : `sqBtn-${key}`;
+    const btn = document.getElementById(btnId);
+    if (btn) btn.classList.add('sq-active');
+    updateSortIndicators();
+    if (allBusinesses.length) renderTable(filterBusinesses(currentFilter), false);
+  }
+
+  // ---- Email Template ----
+  const JS_TYPE_THEME = {
+    restaurant:'food', fast_food:'food', ice_cream:'food', pizza:'food', bakery:'food', pastry:'food',
+    bar:'cafe', cafe:'cafe', pub:'cafe', coffee:'cafe',
+    hairdresser:'wellness', beauty:'wellness', spa:'wellness', nail_salon:'wellness', cosmetics:'wellness',
+    fitness_centre:'sport', gym:'sport', sports_centre:'sport', yoga:'sport',
+    hotel:'hotel', guest_house:'hotel', hostel:'hotel', bed_and_breakfast:'hotel',
+    pharmacy:'health', doctors:'health', dentist:'health', physiotherapist:'health', clinic:'health',
+    lawyer:'professional', notary:'professional', accountant:'professional', tax_advisor:'professional', consulting:'professional',
+    estate_agent:'realestate',
+    car_repair:'automotive', car_wash:'automotive',
+    clothes:'retail', shoes:'retail', jewellery:'retail',
+    electronics:'tech', mobile_phone:'tech', computer:'tech',
+    carpenter:'craft', electrician:'craft', plumber:'craft', painter:'craft',
+  };
+  const THEME_LABEL = {
+    food:'ristorante/locale', cafe:'bar/caffe', wellness:'salone/centro estetico',
+    sport:'palestra/centro sportivo', hotel:'hotel/B&B', health:'studio medico',
+    professional:'studio professionale', realestate:'agenzia immobiliare',
+    automotive:'officina', retail:'negozio', tech:'negozio elettronica',
+    craft:'artigiano', default:'attivita',
+  };
+
+  function getThemeJS(type) { return JS_TYPE_THEME[(type||'').toLowerCase()] || 'default'; }
+
+  function generateEmailTemplate(b) {
+    const theme  = getThemeJS(b.type);
+    const label  = THEME_LABEL[theme] || 'attivita';
+    const social = detectSocial(b.website);
+    const name   = b.name;
+
+    let situation = 'nosito';
+    if (!b.website)        situation = 'nosito';
+    else if (social)       situation = 'social';
+    else                   situation = 'oldsite';
+
+    const platformNote = b.site_platform ? ` (attualmente realizzato con ${b.site_platform})` : '';
+    const yearNote     = b.site_copyright_year && b.site_copyright_year < 2022 ? ` del ${b.site_copyright_year}` : '';
+    const socialName   = social === 'facebook' ? 'Facebook' : social === 'instagram' ? 'Instagram' : (social||'social');
+
+    const subjects = {
+      nosito:  `${name} — Potenziate la vostra presenza online`,
+      social:  `${name} — Dal profilo social a un sito professionale`,
+      oldsite: `${name} — Il vostro sito merita un aggiornamento`,
+    };
+    const bodies = {
+      nosito:
+`Gentile ${name},
+
+ho trovato la vostra attivita cercando un ${label} in zona e ho notato che al momento non avete un sito web.
+
+Ogni giorno potenziali clienti cercano su Google "${label} vicino a me": senza un sito, non riuscite a intercettarli.
+
+Sono un web designer freelance e posso realizzare per voi un sito professionale con:
+- Design moderno, ottimizzato per smartphone e tablet
+- Visibilita su Google (SEO locale)
+- Contenuti su misura per la vostra attivita
+
+Preventivo gratuito e senza impegno. Posso mandarvi qualche esempio di lavori simili.
+
+Resto a disposizione per qualsiasi domanda.
+
+Cordiali saluti,
+[Il tuo nome]
+[Telefono] | [Email]`,
+
+      social:
+`Gentile ${name},
+
+ho trovato il vostro profilo ${socialName} — complimenti per la presenza online.
+
+Un sito web proprio vi darebbe pero cio che i social non possono offrire:
+- Posizionamento su Google ("${label} a [citta]")
+- Una vetrina professionale sempre vostra, indipendente dagli algoritmi
+- Prenotazioni, contatti e informazioni in un unico posto
+
+Sono un web designer freelance specializzato in attivita locali. Preventivo gratuito, tempi rapidi.
+
+Posso mostrarvi qualche esempio simile alla vostra attivita?
+
+Cordiali saluti,
+[Il tuo nome]
+[Telefono] | [Email]`,
+
+      oldsite:
+`Gentile ${name},
+
+ho visitato il vostro sito web${platformNote}${yearNote} e ho notato che potrebbe beneficiare di un aggiornamento moderno.
+
+Un sito rinnovato vi porterebbe:
+- Migliore posizionamento su Google
+- Esperienza ottimale da smartphone (oggi oltre il 70% delle ricerche e mobile)
+- Design attuale che comunica professionalita e fiducia
+
+Sono un web designer freelance: posso mostrarvi gratuitamente come potrebbe apparire il nuovo sito.
+
+Preventivo senza impegno — resto a disposizione.
+
+Cordiali saluti,
+[Il tuo nome]
+[Telefono] | [Email]`,
+    };
+
+    return { subject: subjects[situation], body: bodies[situation] };
+  }
+
+  function openEmailTemplate(idx) {
+    const b = renderedList[idx];
+    if (!b) return;
+    const params = new URLSearchParams({
+      name: b.name, type: b.type||'', address: b.address||'',
+      city: searchCity,
+      phone: b.phone||'', email: b.email||'',
+      lat: b.lat||'', lon: b.lon||'',
+      rating: b.rating||'', review_count: b.review_count||'',
+      ta_rating: b.ta_rating||'', ta_review_count: b.ta_review_count||'',
+      site_platform: b.site_platform||'',
+      website: b.website||'',
+      website_status: b.website_status||''
+    });
+    window.open('/email?' + params.toString(), '_blank');
+  }
+
+  // ---- Pro Mode helpers ----
+  function detectSocial(url) {
+    if (!url) return null;
+    const u = url.toLowerCase();
+    if (/facebook\.com|fb\.com|fb\.me/.test(u)) return 'facebook';
+    if (/instagram\.com/.test(u))               return 'instagram';
+    if (/twitter\.com|x\.com/.test(u))          return 'twitter';
+    if (/linkedin\.com/.test(u))                return 'linkedin';
+    if (/tiktok\.com/.test(u))                  return 'tiktok';
+    if (/youtube\.com/.test(u))                 return 'youtube';
+    if (/wa\.me|whatsapp\.com/.test(u))         return 'whatsapp';
+    return null;
+  }
+
+  const _CHEAP_PLATFORMS = new Set(['Wix', 'Weebly', 'Jimdo', 'Webnode']);
+
+  function leadScoreTier(b) {
+    const social = detectSocial(b.website);
+    if (!b.website)                                                          return 5;
+    if (social)                                                              return 4;
+    if (b.website_status === 'error' || b.website_status === 'unreachable') return 3;
+    if (!normUrl(b.website).startsWith('https'))                            return 2;
+    return 1;
+  }
+
+  // Bonus [0, 0.9): a parita' di livello, distingue i lead piu' interessanti da contattare
+  // per primi (buona reputazione senza sito, oppure sito funzionante ma trascurato).
+  function leadPriorityBonus(b, tier) {
+    if (tier <= 2) {
+      let bonus = 0;
+      if (_CHEAP_PLATFORMS.has(b.site_platform))                      bonus += 0.3;
+      if (b.site_mobile_ok === false)                                 bonus += 0.3;
+      if (b.site_copyright_year && b.site_copyright_year <= new Date().getFullYear() - 3) bonus += 0.3;
+      return Math.min(bonus, 0.9);
+    }
+    if (b.rating == null) return 0;
+    const ratingBonus = (b.rating / 5) * 0.6;
+    const reviewBonus = Math.min(b.review_count || 0, 200) / 200 * 0.3;
+    return Math.min(ratingBonus + reviewBonus, 0.9);
+  }
+
+  function computeLeadScore(b) {
+    const tier = leadScoreTier(b);
+    return tier + leadPriorityBonus(b, tier);
+  }
+
+  function renderScore(b) {
+    const tier   = leadScoreTier(b);
+    const bonus  = leadPriorityBonus(b, tier);
+    const colors = {5:'#ef4444', 4:'#f97316', 3:'#eab308', 2:'#60a5fa', 1:'#9ca3af'};
+    const labels = {5:'Nessun sito web', 4:'Solo social (no sito vero)', 3:'Sito irraggiungibile', 2:'Sito senza HTTPS', 1:'Sito web attivo'};
+    const fg     = tier >= 3 ? '#fff' : '#111';
+    const why    = [];
+    if (tier <= 2) {
+      if (_CHEAP_PLATFORMS.has(b.site_platform)) why.push(`piattaforma ${b.site_platform}`);
+      if (b.site_mobile_ok === false)            why.push('non mobile-friendly');
+      if (b.site_copyright_year && b.site_copyright_year <= new Date().getFullYear() - 3) why.push(`fermo al ${b.site_copyright_year}`);
+    } else if (b.rating != null) {
+      why.push(`${b.rating}★${b.review_count ? ' (' + b.review_count + ' recensioni)' : ''}`);
+    }
+    const whyText = why.length ? ` — ${why.join(', ')}` : '';
+    const badge  = `<span class="score-badge" style="background:${colors[tier]};color:${fg}" title="Priorita' ${(tier+bonus).toFixed(1)}/5 — ${labels[tier]}${whyText}">${tier}</span>`;
+    let ratingHtml = '';
+    if (b.rating != null) {
+      const rc = b.review_count ? ` <span style="color:#9ca3af;font-size:.58rem">(${b.review_count})</span>` : '';
+      ratingHtml = `<div style="font-size:.65rem;color:#d97706;margin-top:3px;white-space:nowrap" title="${b.review_count||0} recensioni Google"><i class="bi bi-google" style="font-size:.55rem;color:#4285f4"></i> &#9733;${b.rating}${rc}</div>`;
+    }
+    let taHtml = '';
+    if (b.ta_rating != null) {
+      const trc = b.ta_review_count ? ` <span style="color:#9ca3af;font-size:.58rem">(${b.ta_review_count})</span>` : '';
+      taHtml = `<div style="font-size:.65rem;color:#00aa6c;margin-top:2px;white-space:nowrap" title="${b.ta_review_count||''} recensioni TripAdvisor"><span style="font-size:.55rem;font-weight:700;background:#00aa6c;color:#fff;border-radius:2px;padding:0 2px">TA</span> &#9733;${b.ta_rating}${trc}</div>`;
+    }
+    return `<div style="display:flex;flex-direction:column;align-items:center">${badge}${ratingHtml}${taHtml}</div>`;
+  }
+
+  function nameKey(name) {
+    return (name || '').toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 60);
+  }
+
+  function isFollowUpDue(nextContact) {
+    if (!nextContact) return false;
+    return nextContact <= new Date().toISOString().slice(0, 10);
+  }
+
+  function renderCRM(b, key) {
+    const note   = businessNotes[key];
+    const status = note ? note.status : 'nuovo';
+    const labels = {nuovo:'Nuovo', contattato:'Contattato', trattativa:'Trattativa', chiuso:'Chiuso', perso:'Perso'};
+    const label  = labels[status] || 'Nuovo';
+    const due    = note && isFollowUpDue(note.next_contact);
+    const bell   = due ? ' 🔔' : '';
+    const titleParts = [];
+    if (note && note.note) titleParts.push(note.note.substring(0, 80));
+    if (due) titleParts.push(`Da ricontattare: ${note.next_contact}`);
+    const sent = emailLog[key];
+    const mail = sent ? ' ✉️' : '';
+    if (sent) titleParts.push(`Email inviata il ${sent.sent_at.slice(0,10)} (${sent.template})`);
+    return `<button class="crm-dot crm-${status}" data-key="${escHtml(key)}" data-name="${escHtml(b.name)}" onclick="openCRM(this)" title="${escHtml(titleParts.join(' — '))}">${label}${bell}${mail}</button>`;
+  }
+
+  function toggleProMode() {
+    proMode = document.getElementById('proModeToggle').checked;
+    localStorage.setItem('proMode', proMode ? '1' : '0');
+    document.body.classList.toggle('pro-mode', proMode);
+    // Social card
+    const socialCount = parseInt(document.getElementById('statSocial').textContent) || 0;
+    document.getElementById('statSocialCard').style.display = proMode && socialCount > 0 ? '' : 'none';
+    // Sort bar
+    document.getElementById('proSortBar').style.display = proMode && allBusinesses.length ? '' : 'none';
+    // Re-render
+    if (allBusinesses.length) renderTable(filterBusinesses(currentFilter));
+  }
+
+  // ---- CRM ----
+  function openCRM(el) {
+    crmCurrentKey = el.dataset.key;
+    document.getElementById('crmModalTitle').textContent = el.dataset.name;
+    const note = businessNotes[crmCurrentKey] || {};
+    document.getElementById('crmStatus').value       = note.status       || 'nuovo';
+    document.getElementById('crmNote').value         = note.note         || '';
+    document.getElementById('crmNextContact').value  = note.next_contact || '';
+    new bootstrap.Modal(document.getElementById('crmModal')).show();
+  }
+
+  async function saveCRM() {
+    const status       = document.getElementById('crmStatus').value;
+    const note         = document.getElementById('crmNote').value;
+    const next_contact = document.getElementById('crmNextContact').value;
+    businessNotes[crmCurrentKey] = {status, note, next_contact};
+    try {
+      await fetch('/api/notes/' + encodeURIComponent(crmCurrentKey), {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status, note, next_contact})
+      });
+    } catch(e) {}
+    bootstrap.Modal.getInstance(document.getElementById('crmModal')).hide();
+    if (allBusinesses.length) renderTable(filterBusinesses(currentFilter));
+  }
+
+  async function loadNotes() {
+    try {
+      const r    = await fetch('/api/notes');
+      const data = await r.json();
+      businessNotes = {};
+      data.forEach(n => { businessNotes[n.name_key] = {status: n.status, note: n.note, next_contact: n.next_contact}; });
+    } catch(e) {}
+  }
+
+  let emailLog = {};
+  async function loadEmailLog() {
+    try {
+      const r    = await fetch('/api/email-log');
+      const data = await r.json();
+      emailLog = {};
+      data.forEach(e => { emailLog[e.name_key] = {subject: e.subject, template: e.template, sent_at: e.sent_at}; });
+    } catch(e) {}
+  }
+
+  // Init
+  loadHistory();
+  loadNotes();
+  loadEmailLog();
+  loadGroups();
+  loadExcluded();
+</script>
+</body>
+</html>

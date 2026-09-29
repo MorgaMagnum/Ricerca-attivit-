@@ -1,0 +1,14 @@
+# Segreti (chiave Serper) — vedi config.example.json
+config.json
+
+# Dati locali: database CRM e relativi backup
+searches.db
+backups/
+
+# Python
+__pycache__/
+*.pyc
+
+# Varie
+*.stackdump
+.claude/settings.local.json
