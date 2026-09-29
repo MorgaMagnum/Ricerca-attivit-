@@ -6,6 +6,7 @@
   <title>Morganti Trova Clienti</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
   <style>
     :root { --accent:#4361ee; --accent-dark:#3451d1; --accent-light:#eef0fd; }
     body { background:#f8f9fb; font-family:'Segoe UI',sans-serif; }
@@ -391,6 +392,10 @@
         Inserisci una località e una categoria per iniziare.
       </span>
       <div class="ms-auto d-flex gap-2 align-items-center">
+        <div class="btn-group btn-group-sm" id="viewToggle" style="display:none" role="group" aria-label="Vista risultati">
+          <button type="button" class="btn btn-outline-secondary active" id="viewBtn-table" onclick="setResultsView('table')"><i class="bi bi-table me-1"></i>Tabella</button>
+          <button type="button" class="btn btn-outline-secondary" id="viewBtn-map" onclick="setResultsView('map')"><i class="bi bi-map me-1"></i>Mappa</button>
+        </div>
         <input type="text" class="form-control form-control-sm" id="tableSearch"
                placeholder="Filtra..." style="width:160px;display:none" autocomplete="off">
       </div>
@@ -425,6 +430,10 @@
           </thead>
           <tbody id="resultsBody"></tbody>
         </table>
+      </div>
+
+      <div id="mapSection" style="display:none">
+        <div id="resultsMap" style="height:calc(100vh - 130px);min-height:420px;border-radius:10px;border:1px solid #e5e7eb"></div>
       </div>
     </div>
   </main>
@@ -514,6 +523,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
   let allBusinesses = [];
   let currentFilter = 'all';
@@ -527,6 +537,13 @@
   let sortDir = 1;
   let selectedSet = new Set(); // chiavi delle attività selezionate
   let searchCity  = '';
+  // Mappa risultati
+  let resultsMap   = null;
+  let mapMarkers   = null;
+  let mapExtras    = null;
+  let searchCenter = null;   // {lat, lon, radiusKm} — assente per le ricerche salvate
+  let mapNeedsFit  = false;  // adatta lo zoom solo a una nuova ricerca, non a ogni filtro
+  let resultsView  = (() => { try { return localStorage.getItem('resultsView') || 'table'; } catch(e) { return 'table'; } })();
 
   // Init pro mode on load
   if (proMode) {
@@ -676,7 +693,13 @@
     document.getElementById('statsSection').style.display = '';
     document.getElementById('tableSearch').style.display  = '';
     document.getElementById('emptyState').style.display   = 'none';
-    document.getElementById('tableSection').style.display = '';
+    document.getElementById('viewToggle').style.display   = '';
+    const loc = data.location || {};
+    searchCenter = (loc.lat != null && loc.lon != null)
+      ? { lat: loc.lat, lon: loc.lon, radiusKm: data.radius_km }
+      : null;
+    mapNeedsFit = true;
+    updateViewUI(); // la mappa viene disegnata da renderTable() qui sotto
 
     document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
     document.querySelector('[data-filter="all"]').classList.add('active');
@@ -758,6 +781,7 @@
     if (resetSearch) document.getElementById('tableSearch').value = '';
     const sorted = sortList(list);
     renderedList  = sorted;
+    renderMap(sorted);
     const tbody   = document.getElementById('resultsBody');
     if (!sorted.length) {
       tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted py-4"><i class="bi bi-search me-2"></i>Nessun risultato trovato.<br><small>Prova a cercare per <strong>città o comune</strong> (es. "Cascina", "Pisa") invece di una via specifica.</small></td></tr>`;
@@ -862,6 +886,113 @@
       lat: b.lat||'', lon: b.lon||''
     });
     window.open('/proposal?' + params.toString(), '_blank');
+  }
+
+  // ---- Mappa risultati ----
+  const MAP_COLORS = { none:'#dc2626', dead:'#f59e0b', social:'#8b5cf6', ok:'#16a34a', excluded:'#9ca3af' };
+  const MAP_LABELS = { none:'Nessun sito', dead:'Sito non funzionante', social:'Solo social', ok:'Ha un sito', excluded:'Escluso' };
+  function mapCategory(b) {
+    if (excludedSet.has(nameKey(b.name))) return 'excluded';
+    if (!b.website) return 'none';
+    if (b.website_status === 'error' || b.website_status === 'unreachable') return 'dead';
+    if (detectSocial(b.website)) return 'social';
+    return 'ok';
+  }
+
+  function ensureMap() {
+    if (resultsMap) return;
+    resultsMap = L.map('resultsMap', { preferCanvas: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(resultsMap);
+    mapExtras  = L.layerGroup().addTo(resultsMap);
+    mapMarkers = L.featureGroup().addTo(resultsMap);
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div');
+      div.style.cssText = 'background:#fff;padding:.4rem .6rem;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.2);font-size:.72rem;line-height:1.6';
+      div.innerHTML = Object.keys(MAP_COLORS).map(k =>
+        `<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${MAP_COLORS[k]};margin-right:.4rem"></span>${MAP_LABELS[k]}</div>`
+      ).join('');
+      return div;
+    };
+    legend.addTo(resultsMap);
+  }
+
+  function mapPopupHtml(b, idx) {
+    const cat = mapCategory(b);
+    const site = b.website
+      ? `<a href="${escHtml(normUrl(b.website))}" target="_blank" rel="noopener">${escHtml(b.website)}</a>`
+      : '<span style="color:#dc2626;font-weight:600">Nessun sito</span>';
+    const rating = b.rating != null ? `<div>&#9733; ${b.rating}${b.review_count ? ` (${b.review_count})` : ''}</div>` : '';
+    return `<div style="min-width:200px;font-size:.8rem">
+      <div style="font-weight:700;font-size:.88rem">${escHtml(b.name)}</div>
+      <div style="color:#6b7280">${escHtml(b.type || '')}</div>
+      ${b.address ? `<div>${escHtml(b.address)}</div>` : ''}
+      ${b.phone ? `<div><a href="tel:${escHtml(b.phone)}">${escHtml(b.phone)}</a></div>` : ''}
+      ${b.email ? `<div><a href="mailto:${escHtml(b.email)}">${escHtml(b.email)}</a></div>` : ''}
+      ${rating}
+      <div style="margin:.25rem 0;word-break:break-all">${site}</div>
+      <div style="color:${MAP_COLORS[cat]};font-weight:600;font-size:.72rem">${MAP_LABELS[cat]}</div>
+      <div style="display:flex;gap:.3rem;margin-top:.4rem">
+        <button class="btn-proposta ${b.website ? '' : 'priority'}" onclick="openProposal(${idx})"><i class="bi bi-layout-text-window me-1"></i>Proposta</button>
+        <a class="btn btn-sm py-0 px-1" style="background:#34a853;color:#fff;border:none" target="_blank" rel="noopener"
+           href="https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lon}" title="Google Maps"><i class="bi bi-geo-alt-fill"></i></a>
+      </div>
+    </div>`;
+  }
+
+  function renderMap(list) {
+    if (resultsView !== 'map' || typeof L === 'undefined') return;
+    ensureMap();
+    // il contenitore puo' essere stato nascosto: Leaflet deve ricalcolare le dimensioni
+    resultsMap.invalidateSize();
+    mapMarkers.clearLayers();
+    mapExtras.clearLayers();
+
+    let radiusCircle = null;
+    if (searchCenter) {
+      radiusCircle = L.circle([searchCenter.lat, searchCenter.lon], {
+        radius: (searchCenter.radiusKm || 0) * 1000,
+        color: '#6366f1', weight: 1.5, dashArray: '6 6', fill: false, interactive: false
+      }).addTo(mapExtras);
+    }
+
+    list.forEach((b, idx) => {
+      if (b.lat == null || b.lon == null) return;
+      const color = MAP_COLORS[mapCategory(b)];
+      L.circleMarker([b.lat, b.lon], {
+        radius: b.website ? 5 : 7, color: '#fff', weight: 1, fillColor: color, fillOpacity: .9
+      }).bindTooltip(escHtml(b.name)).bindPopup(() => mapPopupHtml(b, idx)).addTo(mapMarkers);
+    });
+
+    if (mapNeedsFit) {
+      const bounds = mapMarkers.getLayers().length ? mapMarkers.getBounds()
+                   : radiusCircle ? radiusCircle.getBounds() : null;
+      if (bounds && bounds.isValid()) resultsMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+      else resultsMap.setView([42.5, 12.5], 6); // Italia
+      mapNeedsFit = false;
+    }
+  }
+
+  function updateViewUI() {
+    const isMap = resultsView === 'map';
+    document.getElementById('tableSection').style.display = isMap ? 'none' : '';
+    document.getElementById('mapSection').style.display   = isMap ? '' : 'none';
+    document.getElementById('viewBtn-table').classList.toggle('active', !isMap);
+    document.getElementById('viewBtn-map').classList.toggle('active', isMap);
+  }
+
+  function applyResultsView() {
+    updateViewUI();
+    if (resultsView === 'map') renderMap(renderedList);
+  }
+
+  function setResultsView(view) {
+    resultsView = view;
+    try { localStorage.setItem('resultsView', view); } catch(e) { /* storage non disponibile */ }
+    applyResultsView();
   }
 
   // ---- History ----
